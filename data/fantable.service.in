@@ -1,0 +1,10 @@
+# this file is part of jetson-fantable
+# more at https://github.com/everdrone/jetson-fantable
+
+[Service]
+Type=simple
+ExecStart=@sbindir@/fantable
+User=root
+
+[Install]
+WantedBy=multi-user.target
