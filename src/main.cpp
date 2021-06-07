@@ -56,9 +56,9 @@ int main(int argc, char* argv[]) {
 
   // clang-format off
   static const struct option long_options[] = {
-    {"help",        no_argument         NULL, 'h'},
-    {"version",     no_argument         NULL, 'v'},
-    // {"check",       no_argument         NULL, 'c'},
+    {"help",        no_argument,        NULL, 'h'},
+    {"version",     no_argument,        NULL, 'v'},
+    // {"check",       no_argument,        NULL, 'c'},
     {"interval",    required_argument,  NULL, 'i'},
     {"no-max-freq", no_argument,        NULL, 'M'},
     {"debug",       no_argument,        NULL, OPTION_DEBUG},
