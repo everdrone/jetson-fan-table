@@ -1,11 +1,13 @@
-# Installation
+<h1 align="center">Fan Control Daemon</h1>
+
+<p align="center">Configurable, fast and lightweight</p>
 
 ## Requirements
 
 - Autotools
 - Autoconf Archive (`apt install autoconf-archive`)
 
-## Build
+## Build & Install
 
 ```sh
 ./autogen.sh && cd build
@@ -16,7 +18,7 @@
 sudo make install
 ```
 
-# Usage
+## Usage
 
 Once installed just start the service
 
@@ -26,6 +28,8 @@ sudo systemctl start fantable
 # And to have it run at startup
 sudo systemctl enable fantable
 ```
+
+## Configuration
 
 The configuration files are located in `/etc/fantable`
 

@@ -15,9 +15,6 @@
 #include "thermal.h"
 #include "utils.h"
 
-/* TODO: use const char* where possible
- */
-
 void print_version_exit() {
   std::cout << PACKAGE_STRING << std::endl;
   exit(EXIT_SUCCESS);
@@ -176,7 +173,7 @@ int main(int argc, char* argv[]) {
    */
   while (true) {
     // TODO: add option to use max freq
-    // TODO: add option to add substring to ignore in sensor name
+    // TODO: add option to use substring to ignore in sensor name
     temperature = thermal_average(false);
 
     if (temperature != temperature_old) {
