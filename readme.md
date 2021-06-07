@@ -4,6 +4,8 @@
 
 ## Requirements
 
+- A 5V PWM fan
+- Default L4T Linux image for the Jetson Nano
 - Autotools
 - Autoconf Archive (`apt install autoconf-archive`)
 
@@ -56,3 +58,14 @@ After a configuration change, the service must to be restarted to see the change
 ```sh
 sudo systemctl restart fantable
 ```
+
+## Credits
+
+Similar projects:
+
+- [kooscode/fan-daemon](https://github.com/kooscode/fan-daemon)
+- [Pyrestone/jetson-fan-ctl](https://github.com/Pyrestone/jetson-fan-ctl)
+
+Headers & Libraries
+
+- [tsaarni/cpp-subprocess](https://github.com/tsaarni/cpp-subprocess)
