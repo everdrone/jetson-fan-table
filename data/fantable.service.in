@@ -7,7 +7,7 @@ ConditionPathExists=@sysconfdir@/fantable/table
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/fantable
+ExecStart=/usr/sbin/fantable -A
 User=root
 
 [Install]
