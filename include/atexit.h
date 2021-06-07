@@ -11,15 +11,19 @@
  * Exit handler. turn off the fan before leaving
  */
 void exit_handler(int status = EXIT_SUCCESS) {
+  if (enable_max_freq) {
+    const char* restore_from_path = is_first_run ? INITIAL_STORE_FILE : STORE_FILE;
+
+    debug_log("restoring config %s", restore_from_path);
+    restore_config(restore_from_path);
+  }
+
   // set target pwm to 0
   debug_log("resetting target_pwm to 0");
 
+#if WRITE_SYSTEM_FILES_DANGEROUS
   write_file_int(TARGET_PWM_PATH, 0);
-
-  if (enable_max_freq) {
-    debug_log("running jetson-clocks --restore");
-    jetson_clocks_restore("");
-  }
+#endif
 
   daemon_log(LOG_INFO, "Exiting with status code %d", errno);
   std::cout << std::endl;

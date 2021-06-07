@@ -9,7 +9,7 @@
 #define JETSON_CLOCKS_PATH "/usr/bin/jetson_clocks"
 // general
 #define SOC_FAMILY_PATH "/proc/device-tree/compatible"
-#define MACHINE_PATH "/proc/device-tree/model"
+#define MACHINE_NAME_PATH "/proc/device-tree/model"
 // thermal
 #define THERMAL_ZONE_GLOB "/sys/devices/virtual/thermal/thermal_zone*"
 // fan
@@ -33,6 +33,10 @@
 #define STORE_FILE "/etc/fantable/state.conf"
 #define INITIAL_STORE_FILE "/etc/fantable/initial_state.conf"
 
+// set to true to write into filesystem sensitive files
+#define WRITE_SYSTEM_FILES_DANGEROUS true
+
 static bool enable_debug = false;
 static bool enable_max_freq = true;
 static char* argv0 = "fantable";
+static bool is_first_run = false;

@@ -52,13 +52,30 @@ void write_file_int(const char* path, int value) {
 }
 
 /*
- * Write string to file (no endline)
+ * Write string to file (no newline newline)
+ */
+void write_file_no_eol(const char* path, const char* str) {
+  std::ofstream out_stream(path, std::ios::out);
+
+  if (out_stream) {
+    out_stream << str;
+  } else {
+    daemon_log(LOG_ERR, "cannot open `%s'", path);
+    sprintf_stderr("%s: cannot open `%s'", argv0, path);
+    exit(EXIT_FAILURE);
+  }
+
+  return;
+}
+
+/*
+ * Write string to file (no newline newline)
  */
 void write_file(const char* path, const char* str) {
   std::ofstream out_stream(path, std::ios::out);
 
   if (out_stream) {
-    out_stream << str;
+    out_stream << str << std::endl;
   } else {
     daemon_log(LOG_ERR, "cannot open `%s'", path);
     sprintf_stderr("%s: cannot open `%s'", argv0, path);

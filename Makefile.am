@@ -16,6 +16,7 @@ fantable_SOURCES = \
     include/log.h \
     include/parse_table.h \
     include/thermal.h \
+    include/store_restore.h \
     include/utils.h
 
 # jft_daemon_CPPFLAGS = $(LIBDAEMON_CFLAGS)

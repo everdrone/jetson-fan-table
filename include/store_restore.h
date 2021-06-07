@@ -19,6 +19,8 @@
 #include "log.h"
 #include "utils.h"
 
+// #define CONDITIONAL_RESTORE
+
 /*
  * Checks if file exists, then checks the permissions
  * returns true if exists AND the permissions are granted
@@ -50,7 +52,7 @@ bool check_permissions(const char* path, int permissions) {
       sprintf_stderr(message_template.c_str(), argv0, path);
       return false;
     } else {
-      std::cout << "ok " << path << std::endl;
+      // std::cout << "ok " << path << std::endl;
       return true;
     }
   }
@@ -81,6 +83,7 @@ std::string get_soc_family() {
 }
 
 bool check_all_access() {
+  // FIXME: move this into main()
   if (!is_sudo_or_root()) {
     sprintf_stderr("%s: this program must be run as root", argv0);
     exit(EXIT_FAILURE);
@@ -89,9 +92,11 @@ bool check_all_access() {
   bool state = true;
   glob_t glob_result;
 
-  std::string soc_family = get_soc_family();
+  state &= check_permissions(SOC_FAMILY_PATH, R_OK);
+  state &= check_permissions(MACHINE_NAME_PATH, R_OK);
 
-  // std::string machine = read_file(MACHINE_PATH);
+  std::string soc_family = get_soc_family();
+  std::string machine_name = read_file(MACHINE_NAME_PATH);
 
   // thermal zones
   glob(THERMAL_ZONE_GLOB, GLOB_TILDE, NULL, &glob_result);
@@ -117,7 +122,7 @@ bool check_all_access() {
     state &= check_permissions(cpu_online_path.c_str(), R_OK | W_OK);
     state |= check_permissions(cpu_scaling_governor_path.c_str(), R_OK);
     state &= check_permissions(cpu_min_freq_path.c_str(), R_OK | W_OK);
-    state |= check_permissions(cpu_max_freq_path.c_str(), R_OK);
+    state &= check_permissions(cpu_max_freq_path.c_str(), R_OK);
     state |= check_permissions(cpu_cur_freq_path.c_str(), R_OK);
   }
 
@@ -246,11 +251,85 @@ void store_config(const char* path) {
   lines.push_back(store_line(TEMP_CONTROL_PATH));
   // TODO: add cases for soc_family == "tegra194" && machine = "Clara-AGX"
 
-  std::string file_contents = join(lines, "\n");
-  write_file(path, file_contents.c_str());
+  std::string file_contents = join(lines, "");
+#if WRITE_SYSTEM_FILES_DANGEROUS
+  write_file_no_eol(path, file_contents.c_str());
+#endif  // WRITE_SYSTEM_FILES_DANGEROUS
 
   // cleanup glob
   globfree(&glob_result);
+
+  return;
+}
+
+// TODO: we might need to set the railgate first
+void restore_config(const char* path) {
+  std::vector<std::string> lines = read_lines(path);
+
+#ifdef CONDITIONAL_RESTORE
+  std::vector<std::string> conditional_restore_files;
+  std::vector<std::string> might_fail_files;
+
+  const char* conditional_restore_online_glob = "/sys/devices/system/cpu/cpu*/online";
+  const char* conditional_restore_override_glob = "/sys/kernel/debug/clk/override*/state";
+  const char* might_fail_freq_glob = "/sys/devices/system/cpu/cpu*/cpufreq/scaling_min_freq";
+
+  // special cases
+  glob_t glob_result;
+  glob(conditional_restore_online_glob, GLOB_TILDE, NULL, &glob_result);
+  for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
+    conditional_restore_files.push_back(glob_result.gl_pathv[i]);
+  }
+
+  glob(conditional_restore_override_glob, GLOB_TILDE, NULL, &glob_result);
+  for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
+    conditional_restore_files.push_back(glob_result.gl_pathv[i]);
+  }
+
+  glob(might_fail_freq_glob, GLOB_TILDE, NULL, &glob_result);
+  for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
+    might_fail_files.push_back(glob_result.gl_pathv[i]);
+  }
+
+  globfree(&glob_result);
+#endif  // CONDITIONAL_RESTORE
+
+  for (size_t i = 0; i < lines.size() - 1; i++) {
+    std::vector<std::string> components = split_string(lines[i], ":");
+
+    if (components.size() == 2) {
+      std::string file = components[0];
+      std::string value = components[1];
+
+      // std::cout << file << ":" << value << std::endl;
+
+#ifdef CONDITIONAL_RESTORE
+      // handle special cases (if file in vector)
+      if (std::find(conditional_restore_files.begin(), conditional_restore_files.end(), file) !=
+          conditional_restore_files.end()) {
+        // Element in vector.
+        if () } else {
+#endif  // CONDITIONAL_RESTORE
+#if WRITE_SYSTEM_FILES_DANGEROUS
+        write_file(file.c_str(), value.c_str());
+#endif  // WRITE_SYSTEM_FILES_DANGEROUS
+
+#ifdef CONDITIONAL_RESTORE
+      }
+#endif  // CONDITIONAL_RESTORE
+
+    } else {
+      /*
+       * NOTE: can also be an empty line
+       * but if the store_config() works there should be none
+       */
+      sprintf_stderr(
+          "%s: cannot parse state file `%s'\n"
+          "at line %d: %s",
+          argv0, path, i, lines[i].c_str());
+      exit(EXIT_FAILURE);
+    }
+  }
 
   return;
 }

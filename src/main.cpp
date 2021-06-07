@@ -143,11 +143,16 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  // FIXME: remove me!
-  store_config(STORE_FILE);
-
   // Start logging
   daemon_log(LOG_INFO, "Starting fan control daemon...");
+
+  // check if is first time running
+  if (access(INITIAL_STORE_FILE, F_OK) == -1) {
+    is_first_run = true;
+  }
+
+  daemon_log(LOG_INFO, "saving state to: `%s'", is_first_run ? INITIAL_STORE_FILE : STORE_FILE);
+  store_config(is_first_run ? INITIAL_STORE_FILE : STORE_FILE);
 
   register_exit_handler();
 
@@ -187,12 +192,16 @@ int main(int argc, char* argv[]) {
   unsigned pwm_cap = read_file_int(PWM_CAP_PATH);
 
   if (enable_max_freq) {
-    debug_log("running jetson-clocks --store");
-    jetson_clocks_store("");
-
-    debug_log("running jetson-clocks");
-    jetson_clocks_enable();
+    // FIXME: use set_clocks(), remove jetson_clocks_enable()
+    debug_log("maxing out clock frequencies");
+    clocks_max_freq();
   }
+
+  /*
+   * scan temperature sensors
+   */
+  debug_log("ignoring sensor containing `%s'", options_object.substring);
+  std::vector<std::string> sensor_paths = scan_sensors(options_object.substring);
 
   /*
    * daemon loop
@@ -201,14 +210,14 @@ int main(int argc, char* argv[]) {
     if (options_object.use_highest) {
       debug_log("using highest measured temperature");
     }
-    debug_log("ignoring sensor containing `%s'", options_object.substring);
-    temperature = thermal_average(options_object.use_highest, options_object.substring);
+    temperature = thermal_average(sensor_paths, options_object.use_highest);
+    temperature /= 1000;
 
     if (temperature != temperature_old) {
-      pwm = interpolate(table_config, temperature / 1000);
+      pwm = interpolate(table_config, temperature);
 
       // print PWM speed from table before its changed
-      debug_log("temperature: %dC", temperature / 1000);
+      debug_log("temperature: %dC", temperature);
       debug_log("fan speed: %d%%", pwm);
 
       pwm = pwm * pwm_cap / 100;
@@ -218,8 +227,9 @@ int main(int argc, char* argv[]) {
 
       debug_log("target_pwm: %d", pwm);
       debug_log("writing pwm to `%s'", TARGET_PWM_PATH);
-
+#if WRITE_SYSTEM_FILES_DANGEROUS
       write_file_int(TARGET_PWM_PATH, pwm);
+#endif
     }
 
     temperature_old = temperature;
