@@ -120,6 +120,7 @@ int main(int argc, char* argv[]) {
   assert(opt);
 
   if (optind < argc) {
+    daemon_log(LOG_ERR, "too many arguments");
     sprintf_stderr("%s: too many arguments", argv0);
     exit(EXIT_FAILURE);
   }
@@ -136,6 +137,7 @@ int main(int argc, char* argv[]) {
 
   // print version and exit
   if (options_object.check) {
+    // TODO: add check for fan table file
     if (check_all_access()) {
       exit(EXIT_SUCCESS);
     } else {
@@ -177,6 +179,7 @@ int main(int argc, char* argv[]) {
 
   if (table_config.size() < 1) {
     // TODO: handle invalid (empty?) table file
+    daemon_log(LOG_ERR, "empty table configuration, possibly a parse error at `%s'", TABLE_PATH);
     sprintf_stderr("%s: empty table configuration, possibly a parse error at `%s'", argv0,
                    TABLE_PATH);
     exit(EXIT_FAILURE);

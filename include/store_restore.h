@@ -30,16 +30,21 @@ bool check_permissions(const char* path, int permissions) {
   std::string message_template = "%s: no such file `%s'";
   if (access(path, F_OK) == -1) {
     // doesnt exist
+    daemon_log(LOG_ERR, "no such file `%s'", path);
     sprintf_stderr(message_template.c_str(), argv0, path);
     return false;
   } else {
     if (permissions == R_OK) {
       message_template = "%s: no read access to file `%s'";
+      daemon_log(LOG_ERR, "no read access to file `%s'", path);
     } else if (permissions == W_OK) {
+      daemon_log(LOG_ERR, "no write access to file `%s'", path);
       message_template = "%s: no write access to file `%s'";
     } else if (permissions == X_OK) {
+      daemon_log(LOG_ERR, "no execute access to file `%s'", path);
       message_template = "%s: no execute access to file `%s'";
     } else if (permissions == R_OK | W_OK) {
+      daemon_log(LOG_ERR, "no read/write access to file `%s'", path);
       message_template = "%s: no read/write access to file `%s'";
     } else if (permissions == F_OK) {
       // already done, just exit
@@ -72,6 +77,7 @@ std::string get_soc_family() {
     soc_family = TEGRA_194;
   } else {
     // not supported
+    daemon_log(LOG_ERR, "unsupported device");
     sprintf_stderr(
         "%s: this device is not supported\n"
         "%s",
@@ -85,6 +91,7 @@ std::string get_soc_family() {
 bool check_all_access() {
   // FIXME: move this into main()
   if (!is_sudo_or_root()) {
+    daemon_log(LOG_ERR, "this program must be run as root");
     sprintf_stderr("%s: this program must be run as root", argv0);
     exit(EXIT_FAILURE);
   }
@@ -323,9 +330,11 @@ void restore_config(const char* path) {
        * NOTE: can also be an empty line
        * but if the store_config() works there should be none
        */
+      daemon_log(LOG_ERR, "cannot parse state file `%s' at line %d: `%s'", path, i,
+                 lines[i].c_str());
       sprintf_stderr(
           "%s: cannot parse state file `%s'\n"
-          "at line %d: %s",
+          "at line %d: `%s'",
           argv0, path, i, lines[i].c_str());
       exit(EXIT_FAILURE);
     }

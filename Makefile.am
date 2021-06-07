@@ -8,7 +8,6 @@ EXTRA_DIST = data/table readme.md license
 
 fantable_SOURCES = \
     src/main.cpp \
-    vendor/subprocess.hpp \
     include/atexit.h \
     include/clocks.h \
     include/defines.h \

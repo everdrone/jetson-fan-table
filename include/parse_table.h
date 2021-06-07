@@ -94,11 +94,13 @@ void check_table(const char* path, bool exit_after = true) {
           std::stoi(parsed[0]);
           std::stoi(parsed[1]);
         } else {
-          sprintf_stderr("%s: cannot line %d: `%s'", argv0, i, lines[i].c_str());
+          daemon_log(LOG_ERR, "cannot parse line %d: `%s'", i, path);
+          sprintf_stderr("%s: cannot parse line %d: `%s'", argv0, i, lines[i].c_str());
           exit(EXIT_FAILURE);
         }
       } catch (...) {
-        sprintf_stderr("%s: cannot line %d: `%s'", argv0, i, lines[i].c_str());
+        daemon_log(LOG_ERR, "cannot parse line %d: `%s'", i, path);
+        sprintf_stderr("%s: cannot parse line %d: `%s'", argv0, i, lines[i].c_str());
         exit(EXIT_FAILURE);
       }
     }
