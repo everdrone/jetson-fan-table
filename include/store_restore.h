@@ -39,12 +39,12 @@ bool check_permissions(const char* path, int permissions) {
     }
 
     int result = access(path, permissions);
-    std::cout << "perm: `" << path << "' " << result << std::endl;
     if (result == -1) {
       // no access
       sprintf_stderr(message_template.c_str(), argv0, path);
       return false;
     } else {
+      std::cout << "ok " << path << std::endl;
       return true;
     }
   }
