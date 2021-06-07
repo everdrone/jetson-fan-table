@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
 
   if (enable_max_freq) {
     debug_log("running jetson-clocks --store");
-    jetson_clocks_store("/");
+    jetson_clocks_store("");
 
     debug_log("running jetson-clocks");
     jetson_clocks_enable();
