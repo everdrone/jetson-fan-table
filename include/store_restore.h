@@ -52,18 +52,8 @@ bool check_permissions(const char* path, int permissions) {
   return true;
 }
 
-bool check_all_access() {
-  if (!is_sudo_or_root()) {
-    sprintf_stderr("%s: this program must be run as root", argv0);
-    exit(EXIT_FAILURE);
-  }
-
-  bool state = true;
-
-  glob_t glob_result;
-
+std::string& get_soc_family() {
   std::string soc_family = read_file(SOC_FAMILY_PATH);
-  std::cout << soc_family << std::endl;
 
   // save clean sock family
   if (soc_family.find(TEGRA_186) != std::string::npos) {
@@ -80,6 +70,20 @@ bool check_all_access() {
         argv0, soc_family.c_str());
     exit(EXIT_FAILURE);
   }
+
+  return soc_family;
+}
+
+bool check_all_access() {
+  if (!is_sudo_or_root()) {
+    sprintf_stderr("%s: this program must be run as root", argv0);
+    exit(EXIT_FAILURE);
+  }
+
+  bool state = true;
+  glob_t glob_result;
+
+  std::string soc_family = get_soc_family();
 
   // std::string machine = read_file(MACHINE_PATH);
 
@@ -169,4 +173,8 @@ std::string& store_line(const char* path, const char* value) {
   return result;
 }
 
-void store(const char* path) { return; }
+void store(const char* path) {
+  std::string soc_family = get_soc_family();
+
+  return;
+}
