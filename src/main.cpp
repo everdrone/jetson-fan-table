@@ -135,7 +135,11 @@ int main(int argc, char* argv[]) {
 
   // print version and exit
   if (options_object.check) {
-    check_all_access();
+    if (check_all_access()) {
+      exit(EXIT_SUCCESS);
+    } else {
+      exit(EXIT_FAILURE);
+    }
   }
 
   // Start logging

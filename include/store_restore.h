@@ -52,7 +52,7 @@ bool check_permissions(const char* path, int permissions) {
   return true;
 }
 
-void check_all_access() {
+bool check_all_access() {
   if (!is_sudo_or_root()) {
     sprintf_stderr("%s: this program must be run as root", argv0);
     exit(EXIT_FAILURE);
@@ -159,9 +159,7 @@ void check_all_access() {
   state &= check_permissions(TARGET_PWM_PATH, R_OK | W_OK);
   state &= check_permissions(TABLE_PATH, R_OK | W_OK);
 
-  if (!state) {
-    exit(EXIT_FAILURE);
-  }
+  return state;
 }
 
 std::string& store_line(const char* path, const char* value) {
