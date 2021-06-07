@@ -1,9 +1,13 @@
 # this file is part of jetson-fantable
 # more at https://github.com/everdrone/jetson-fantable
 
+[Unit]
+Description=Fan Table Control
+ConditionPathExists=@sysconfdir@/fantable/table
+
 [Service]
 Type=simple
-ExecStart=@sbindir@/fantable
+ExecStart=/usr/sbin/fantable
 User=root
 
 [Install]

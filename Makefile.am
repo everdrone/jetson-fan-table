@@ -25,7 +25,10 @@ sytemdsysdir = $(sysconfdir)/systemd/system
 sytemdsys_DATA = data/fantable.service
 
 .service: .service.in
+	$(AM_V_GEN)sed -e 's,@prefix\@,$(prefix),g' $< > $@
+	$(AM_V_GEN)sed -e 's,@exec_prefix\@,$(exec_prefix),g' $< > $@
 	$(AM_V_GEN)sed -e 's,@sbindir\@,$(sbindir),g' $< > $@
+	$(AM_V_GEN)sed -e 's,@sysconfdir\@,$(sysconfdir),g' $< > $@
 
 pkgsysconfdir=$(sysconfdir)/fantable
 pkgsysconf_DATA = data/table
