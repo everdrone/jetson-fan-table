@@ -70,49 +70,50 @@ int main(int argc, char* argv[]) {
     {"ignore-sensors",  required_argument,  NULL, 's'},
     {"debug",           no_argument,        NULL, OPTION_DEBUG},
     {NULL,              0,                  NULL, 0}};
+  // clang-format on
 
   int opt;
   while ((opt = getopt_long(argc, argv, "hvci:MAs:", long_options, NULL)) >= 0) {
     switch (opt) {
-    case 'h':
-      options_object.help = true;
-      break;
-    case 'v':
-      options_object.version = true;
-      break;
-    case 'c':
-      options_object.check = true;
-      break;
-    case 'M':
-      enable_max_freq = false;
-      break;
-    case 'A':
-      options_object.use_highest = true;
-      break;
-    case 'i':
-      try {
-        options_object.interval = std::stoul(optarg);
-      } catch (...) {
-        daemon_log(LOG_ERR, "cannot parse argument `%s' for --interval", optarg);
-        fprintf(stderr, "%s: cannot parse argument `%s' for --interval\n", argv0, optarg);
-        exit(EXIT_FAILURE);
-      }
-      break;
-    case 's':
-      options_object.substring = optarg;
-      break;
-    case OPTION_DEBUG:
-      enable_debug = true;
-      break;
-    // case '?':
-    //   if (optopt == 'i')
-    //     fprintf(stderr, "Option -%c requires an argument\n", optopt);
-    //   else if (isprint(optopt))
-    //     fprintf(stderr, "Unknown option `-%c'\n", optopt);
-    //   else
-    //     fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
-    default:
-      return -1;
+      case 'h':
+        options_object.help = true;
+        break;
+      case 'v':
+        options_object.version = true;
+        break;
+      case 'c':
+        options_object.check = true;
+        break;
+      case 'M':
+        enable_max_freq = false;
+        break;
+      case 'A':
+        options_object.use_highest = true;
+        break;
+      case 'i':
+        try {
+          options_object.interval = std::stoul(optarg);
+        } catch (...) {
+          daemon_log(LOG_ERR, "cannot parse argument `%s' for --interval", optarg);
+          fprintf(stderr, "%s: cannot parse argument `%s' for --interval\n", argv0, optarg);
+          exit(EXIT_FAILURE);
+        }
+        break;
+      case 's':
+        options_object.substring = optarg;
+        break;
+      case OPTION_DEBUG:
+        enable_debug = true;
+        break;
+      // case '?':
+      //   if (optopt == 'i')
+      //     fprintf(stderr, "Option -%c requires an argument\n", optopt);
+      //   else if (isprint(optopt))
+      //     fprintf(stderr, "Unknown option `-%c'\n", optopt);
+      //   else
+      //     fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+      default:
+        return -1;
     }
   }
 
@@ -141,6 +142,9 @@ int main(int argc, char* argv[]) {
       exit(EXIT_FAILURE);
     }
   }
+
+  // FIXME: remove me!
+  store_config(STORE_FILE);
 
   // Start logging
   daemon_log(LOG_INFO, "Starting fan control daemon...");
@@ -173,8 +177,8 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  if (enable_debug) { // so we don't iterate for no reason
-    for (const auto &row : table_config) {
+  if (enable_debug) {  // so we don't iterate for no reason
+    for (const auto& row : table_config) {
       daemon_log(LOG_DEBUG, "  %d -> %d", row.x, row.y);
     }
   }

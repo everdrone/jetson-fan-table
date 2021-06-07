@@ -19,11 +19,17 @@
 #include "log.h"
 #include "utils.h"
 
+/*
+ * Checks if file exists, then checks the permissions
+ * returns true if exists AND the permissions are granted
+ * returns false if no exist OR the access is negated
+ */
 bool check_permissions(const char* path, int permissions) {
   std::string message_template = "%s: no such file `%s'";
   if (access(path, F_OK) == -1) {
     // doesnt exist
     sprintf_stderr(message_template.c_str(), argv0, path);
+    return false;
   } else {
     if (permissions == R_OK) {
       message_template = "%s: no read access to file `%s'";
@@ -52,7 +58,7 @@ bool check_permissions(const char* path, int permissions) {
   return true;
 }
 
-std::string& get_soc_family() {
+std::string get_soc_family() {
   std::string soc_family = read_file(SOC_FAMILY_PATH);
 
   // save clean sock family
@@ -109,17 +115,17 @@ bool check_all_access() {
     std::string cpu_cur_freq_path = cpu_path + "/cpufreq/scaling_cur_freq";
 
     state &= check_permissions(cpu_online_path.c_str(), R_OK | W_OK);
-    state &= check_permissions(cpu_scaling_governor_path.c_str(), R_OK);
+    state |= check_permissions(cpu_scaling_governor_path.c_str(), R_OK);
     state &= check_permissions(cpu_min_freq_path.c_str(), R_OK | W_OK);
-    state &= check_permissions(cpu_max_freq_path.c_str(), R_OK);
-    state &= check_permissions(cpu_cur_freq_path.c_str(), R_OK);
+    state |= check_permissions(cpu_max_freq_path.c_str(), R_OK);
+    state |= check_permissions(cpu_cur_freq_path.c_str(), R_OK);
   }
 
   glob(CPU_IDLE_STATE_GLOB, GLOB_TILDE, NULL, &glob_result);
   for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
     std::string cpu_idle_state_path(glob_result.gl_pathv[i]);
 
-    state &= check_permissions(cpu_idle_state_path.c_str(), R_OK | W_OK);
+    state |= check_permissions(cpu_idle_state_path.c_str(), R_OK | W_OK);
   }
 
   glob(GPU_GLOB, GLOB_TILDE, NULL, &glob_result);
@@ -127,7 +133,7 @@ bool check_all_access() {
     std::string gpu_path(glob_result.gl_pathv[i]);
     state &= check_permissions(gpu_path.c_str(), F_OK);
 
-    std::string gpu_name_path = gpu_path + "/device/of_node/name";  // the name ends with \0
+    std::string gpu_name_path = gpu_path + "/device/of_node/name";  // name ends with \0
     state &= check_permissions(gpu_name_path.c_str(), R_OK);
 
     // NOTE: only for gp10b, gv11b, gpu
@@ -142,39 +148,109 @@ bool check_all_access() {
       std::string gpu_rail_gate_path = gpu_path + "/device/railgate_enable";
 
       state &= check_permissions(gpu_min_freq_path.c_str(), R_OK | W_OK);
-      state &= check_permissions(gpu_max_freq_path.c_str(), R_OK);
-      state &= check_permissions(gpu_cur_freq_path.c_str(), R_OK);
+      state |= check_permissions(gpu_max_freq_path.c_str(), R_OK);
+      state |= check_permissions(gpu_cur_freq_path.c_str(), R_OK);
       state &= check_permissions(gpu_rail_gate_path.c_str(), R_OK | W_OK);
     }
   }
 
   // emc
-  // TODO: add contitional SOC_FAMILY
+  // TODO: add contitional SOC_FAMILY for tegra186 | tegra194
   if (soc_family == TEGRA_210) {
-    state &= check_permissions(TEGRA_210_EMC_MIN_FREQ, R_OK);
-    state &= check_permissions(TEGRA_210_EMC_MAX_FREQ, R_OK);
-    state &= check_permissions(TEGRA_210_EMC_CUR_FREQ, R_OK);
-    state &= check_permissions(TEGRA_210_EMC_UPDATE_FREQ, R_OK | W_OK);
-    state &= check_permissions(TEGRA_210_EMC_FREQ_OVERRIDE, R_OK | W_OK);
+    state |= check_permissions(TEGRA_210_EMC_MIN_FREQ_PATH, R_OK);
+    state &= check_permissions(TEGRA_210_EMC_MAX_FREQ_PATH, R_OK);
+    state |= check_permissions(TEGRA_210_EMC_CUR_FREQ_PATH, R_OK);
+    state &= check_permissions(TEGRA_210_EMC_UPDATE_FREQ_PATH, R_OK | W_OK);
+    state &= check_permissions(TEGRA_210_EMC_FREQ_OVERRIDE_PATH, R_OK | W_OK);
   }
 
   // TODO: add contitional SOC_FAMILY
+  // fan
   state &= check_permissions(PWM_CAP_PATH, R_OK | W_OK);
   state &= check_permissions(TARGET_PWM_PATH, R_OK | W_OK);
+  state &= check_permissions(TEMP_CONTROL_PATH, R_OK | W_OK);
+  // fan config
   state &= check_permissions(TABLE_PATH, R_OK | W_OK);
+
+  // cleanup glob
+  globfree(&glob_result);
 
   return state;
 }
 
-std::string& store_line(const char* path, const char* value) {
+std::string store_line(const char* path, const char* value) {
   std::string result = path;
   result += ":";
   result += value;
+
   return result;
 }
 
-void store(const char* path) {
+std::string store_line(const char* path) {
+  std::string value = read_file(path);
+
+  return store_line(path, value.c_str());
+}
+
+void store_config(const char* path) {
+  std::vector<std::string> lines;
+  glob_t glob_result;
+
   std::string soc_family = get_soc_family();
+
+  // store cpu online and scaling_min_freq
+  glob(CPU_GLOB, GLOB_TILDE, NULL, &glob_result);
+  for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
+    std::string cpu_path(glob_result.gl_pathv[i]);
+    std::string cpu_online_path = cpu_path + "/online";
+    std::string cpu_min_freq_path = cpu_path + "/cpufreq/scaling_min_freq";
+
+    lines.push_back(store_line(cpu_online_path.c_str()));
+    lines.push_back(store_line(cpu_min_freq_path.c_str()));
+  }
+
+  // store cpu idle state disable
+  glob(CPU_IDLE_STATE_GLOB, GLOB_TILDE, NULL, &glob_result);
+  for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
+    std::string cpu_idle_state_path(glob_result.gl_pathv[i]);
+
+    lines.push_back(store_line(cpu_idle_state_path.c_str()));
+  }
+
+  // store gpu min_freq and railgate_enable
+  glob(GPU_GLOB, GLOB_TILDE, NULL, &glob_result);
+  for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
+    std::string gpu_path(glob_result.gl_pathv[i]);
+    std::string gpu_name_path = gpu_path + "/device/of_node/name";  // name ends with \0
+    std::string gpu_name = read_file(gpu_name_path.c_str());
+    // equivalent of tr -d '\0'
+    gpu_name.erase(std::find(gpu_name.begin(), gpu_name.end(), '\0'), gpu_name.end());
+
+    if (gpu_name == "gp10b" || gpu_name == "gv11b" || gpu_name == "gpu") {
+      std::string gpu_min_freq_path = gpu_path + "/min_freq";
+      std::string gpu_rail_gate_path = gpu_path + "/device/railgate_enable";
+
+      lines.push_back(store_line(gpu_min_freq_path.c_str()));
+      lines.push_back(store_line(gpu_rail_gate_path.c_str()));
+    }
+  }
+
+  // store emc freq override
+  // TODO: add contitional SOC_FAMILY for tegra186 | tegra194
+  if (soc_family == TEGRA_210) {
+    lines.push_back(store_line(TEGRA_210_EMC_FREQ_OVERRIDE_PATH));
+  }
+
+  // store target_pwm and temp_control
+  lines.push_back(store_line(TARGET_PWM_PATH));
+  lines.push_back(store_line(TEMP_CONTROL_PATH));
+  // TODO: add cases for soc_family == "tegra194" && machine = "Clara-AGX"
+
+  std::string file_contents = join(lines, "\n");
+  write_file(path, file_contents.c_str());
+
+  // cleanup glob
+  globfree(&glob_result);
 
   return;
 }

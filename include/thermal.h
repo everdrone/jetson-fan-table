@@ -47,6 +47,9 @@ unsigned thermal_average(bool use_max, const char* ignore_substring) {
     }
   }
 
+  // cleanup
+  globfree(&glob_result);
+
 #ifndef SYSLOG_MERCY
   debug_log("using sensors: %s", join(used_sensors, ", ").c_str());
   debug_log("ignored sensors: %s", join(ignored_sensors, ", ").c_str());
