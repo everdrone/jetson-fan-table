@@ -52,6 +52,23 @@ void write_file_int(const char* path, int value) {
 }
 
 /*
+ * Write string to file (no endline)
+ */
+void write_file(const char* path, const char* str) {
+  std::ofstream out_stream(path, std::ios::out);
+
+  if (out_stream) {
+    out_stream << str;
+  } else {
+    daemon_log(LOG_ERR, "cannot open `%s'", path);
+    sprintf_stderr("%s: cannot open `%s'", argv0, path);
+    exit(EXIT_FAILURE);
+  }
+
+  return;
+}
+
+/*
  * Splits a string into a vector at every delimiter
  */
 std::vector<std::string> split_string(const std::string& str, const std::string& delimiter) {
@@ -156,5 +173,10 @@ bool is_only_ascii_whitespace(const std::string& str) {
   } while (*it >= 0 && *it <= 0x7f && std::isspace(*(it++)));
   // one of these conditions will be optimized away by the compiler,
   // which one depends on whether char is signed or not
+  return false;
+}
+
+bool is_sudo_or_root() {
+  if (geteuid() == 0) return true;
   return false;
 }

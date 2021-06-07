@@ -12,6 +12,7 @@
 #include "interpolate.h"
 #include "log.h"
 #include "parse_table.h"
+#include "store_restore.h"
 #include "thermal.h"
 #include "utils.h"
 
@@ -25,7 +26,7 @@ void print_help_exit() {
       "%s [options]\n"
       "    -h --help                       Show this help\n"
       "    -v --version                    Show version\n"
-      // "    -c --check                      Check table file\n"
+      "    -c --check                      Check configurations and permissions\n"
       "    -i --interval <int>             Interval in seconds (defaults to 2)\n"
       "    -M --no-max-freq                Do not set CPU and GPU clocks\n"
       "    -A --no-average                 Use the highest measured temperature instead of\n"
@@ -62,7 +63,7 @@ int main(int argc, char* argv[]) {
   static const struct option long_options[] = {
     {"help",            no_argument,        NULL, 'h'},
     {"version",         no_argument,        NULL, 'v'},
-    // {"check",           no_argument,        NULL, 'c'},
+    {"check",           no_argument,        NULL, 'c'},
     {"interval",        required_argument,  NULL, 'i'},
     {"no-max-freq",     no_argument,        NULL, 'M'},
     {"no-average",      no_argument,        NULL, 'A'},
@@ -71,7 +72,7 @@ int main(int argc, char* argv[]) {
     {NULL,              0,                  NULL, 0}};
 
   int opt;
-  while ((opt = getopt_long(argc, argv, "hvi:MAs:", long_options, NULL)) >= 0) {
+  while ((opt = getopt_long(argc, argv, "hvci:MAs:", long_options, NULL)) >= 0) {
     switch (opt) {
     case 'h':
       options_object.help = true;
@@ -79,9 +80,9 @@ int main(int argc, char* argv[]) {
     case 'v':
       options_object.version = true;
       break;
-    // case 'c':
-    //   options_object.check = true;
-    //   break;
+    case 'c':
+      options_object.check = true;
+      break;
     case 'M':
       enable_max_freq = false;
       break;
@@ -130,6 +131,11 @@ int main(int argc, char* argv[]) {
   // print version and exit
   if (options_object.version) {
     print_version_exit();
+  }
+
+  // print version and exit
+  if (options_object.check) {
+    check_all_access();
   }
 
   // Start logging

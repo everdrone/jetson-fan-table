@@ -9,8 +9,8 @@
 #define SYSLOG_MERCY
 
 unsigned thermal_average(bool use_max, const char* ignore_substring) {
-  glob_t globResult;
-  glob(THERMAL_ZONE_GLOB, GLOB_TILDE, NULL, &globResult);
+  glob_t glob_result;
+  glob(THERMAL_ZONE_GLOB, GLOB_TILDE, NULL, &glob_result);
 
   unsigned temp_sum = 0;
   unsigned num_sensors = 0;
@@ -21,8 +21,8 @@ unsigned thermal_average(bool use_max, const char* ignore_substring) {
   std::vector<std::string> ignored_sensors;
 #endif
 
-  for (unsigned i = 0; i < globResult.gl_pathc; i++) {
-    std::string thermal_zone_path(globResult.gl_pathv[i]);
+  for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
+    std::string thermal_zone_path(glob_result.gl_pathv[i]);
     std::string sensor_name_path = thermal_zone_path + "/type";
     std::string sensor_temp_path = thermal_zone_path + "/temp";
 
