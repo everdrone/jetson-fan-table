@@ -127,6 +127,22 @@ inline std::string& trim(std::string& s, const char* t = " \t\n\r\f\v") {
   return ltrim(rtrim(s, t), t);
 }
 
+static std::string& join(const std::vector<std::string>& elems, std::string& s, std::string delim) {
+  for (std::vector<std::string>::const_iterator ii = elems.begin(); ii != elems.end(); ++ii) {
+    s += (*ii);
+    if (ii + 1 != elems.end()) {
+      s += delim;
+    }
+  }
+
+  return s;
+}
+
+static std::string join(const std::vector<std::string>& elems, std::string delim) {
+  std::string s;
+  return join(elems, s, delim);
+}
+
 /*
  * check if string is whitespace or non-ascii characters
  * returns true if empty or whitespace

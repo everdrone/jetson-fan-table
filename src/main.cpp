@@ -23,13 +23,15 @@ void print_version_exit() {
 void print_help_exit() {
   printf(
       "%s [options]\n"
-      "    -h --help           Show this help\n"
-      "    -v --version        Show version\n"
-      // "    -c --check          Check table file\n"
-      "    -i --interval       Interval in seconds (defaults to 2)\n"
-      "                        calculating the average\n"
-      "    -M --no-max-freq    Do not set CPU and GPU clocks\n"
-      "       --debug          Increase verbosity in syslog\n",
+      "    -h --help                       Show this help\n"
+      "    -v --version                    Show version\n"
+      // "    -c --check                      Check table file\n"
+      "    -i --interval <int>             Interval in seconds (defaults to 2)\n"
+      "    -M --no-max-freq                Do not set CPU and GPU clocks\n"
+      "    -A --no-average                 Use the highest measured temperature instead of\n"
+      "                                    calculating the average\n"
+      "    -s --ignore-sensors <string>    Ignore sensors that match a substring (case sensitive)\n"
+      "       --debug                      Increase verbosity in syslog\n",
       argv0);
   exit(EXIT_SUCCESS);
 }
@@ -42,6 +44,8 @@ typedef struct {
   bool help = false;
   bool version = false;
   bool check = false;
+  bool use_highest = false;
+  char* substring = "PMIC";
   unsigned interval = 2;
 } options_t;
 
@@ -56,16 +60,18 @@ int main(int argc, char* argv[]) {
 
   // clang-format off
   static const struct option long_options[] = {
-    {"help",        no_argument,        NULL, 'h'},
-    {"version",     no_argument,        NULL, 'v'},
-    // {"check",       no_argument,        NULL, 'c'},
-    {"interval",    required_argument,  NULL, 'i'},
-    {"no-max-freq", no_argument,        NULL, 'M'},
-    {"debug",       no_argument,        NULL, OPTION_DEBUG},
-    {NULL,          0,                  NULL, 0}};
+    {"help",            no_argument,        NULL, 'h'},
+    {"version",         no_argument,        NULL, 'v'},
+    // {"check",           no_argument,        NULL, 'c'},
+    {"interval",        required_argument,  NULL, 'i'},
+    {"no-max-freq",     no_argument,        NULL, 'M'},
+    {"no-average",      no_argument,        NULL, 'A'},
+    {"ignore-sensors",  required_argument,  NULL, 's'},
+    {"debug",           no_argument,        NULL, OPTION_DEBUG},
+    {NULL,              0,                  NULL, 0}};
 
   int opt;
-  while ((opt = getopt_long(argc, argv, "hvi:M", long_options, NULL)) >= 0) {
+  while ((opt = getopt_long(argc, argv, "hvi:MAs:", long_options, NULL)) >= 0) {
     switch (opt) {
     case 'h':
       options_object.help = true;
@@ -79,6 +85,9 @@ int main(int argc, char* argv[]) {
     case 'M':
       enable_max_freq = false;
       break;
+    case 'A':
+      options_object.use_highest = true;
+      break;
     case 'i':
       try {
         options_object.interval = std::stoul(optarg);
@@ -87,6 +96,9 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "%s: cannot parse argument `%s' for --interval\n", argv0, optarg);
         exit(EXIT_FAILURE);
       }
+      break;
+    case 's':
+      options_object.substring = optarg;
       break;
     case OPTION_DEBUG:
       enable_debug = true;
@@ -172,9 +184,11 @@ int main(int argc, char* argv[]) {
    * daemon loop
    */
   while (true) {
-    // TODO: add option to use max freq
-    // TODO: add option to use substring to ignore in sensor name
-    temperature = thermal_average(false);
+    if (options_object.use_highest) {
+      debug_log("using highest measured temperature");
+    }
+    debug_log("ignoring sensor containing `%s'", options_object.substring);
+    temperature = thermal_average(options_object.use_highest, options_object.substring);
 
     if (temperature != temperature_old) {
       pwm = interpolate(table_config, temperature / 1000);
