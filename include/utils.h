@@ -7,6 +7,9 @@
 #include <string>
 #include <vector>
 
+using std::string;
+using std::vector;
+
 /*
  * Read an int from a file
  */
@@ -15,7 +18,7 @@ int read_file_int(const char* path) {
 
   std::ifstream in_stream(path);
   if (in_stream) {
-    std::string file_contents;
+    string file_contents;
 
     in_stream >> file_contents;
     try {
@@ -88,11 +91,11 @@ void write_file(const char* path, const char* str) {
 /*
  * Splits a string into a vector at every delimiter
  */
-std::vector<std::string> split_string(const std::string& str, const std::string& delimiter) {
-  std::vector<std::string> strings;
-  std::string::size_type pos = 0;
-  std::string::size_type prev = 0;
-  while ((pos = str.find(delimiter, prev)) != std::string::npos) {
+vector<string> split_string(const string& str, const string& delimiter) {
+  vector<string> strings;
+  string::size_type pos = 0;
+  string::size_type prev = 0;
+  while ((pos = str.find(delimiter, prev)) != string::npos) {
     strings.push_back(str.substr(prev, pos - prev));
     prev = pos + 1;
   }
@@ -106,13 +109,12 @@ std::vector<std::string> split_string(const std::string& str, const std::string&
 /*
  * Read a file and plit it into lines
  */
-std::vector<std::string> read_lines(const char* path) {
+vector<string> read_lines(const char* path) {
   std::ifstream in_stream(path);
-  std::vector<std::string> result_lines;
+  vector<string> result_lines;
 
   if (in_stream) {
-    std::string result((std::istreambuf_iterator<char>(in_stream)),
-                       std::istreambuf_iterator<char>());
+    string result((std::istreambuf_iterator<char>(in_stream)), std::istreambuf_iterator<char>());
     result_lines = split_string(result, "\n");
     return result_lines;
   } else {
@@ -127,13 +129,12 @@ std::vector<std::string> read_lines(const char* path) {
 /*
  * Read the whole file into a string
  */
-std::string read_file(const char* path) {
+string read_file(const char* path) {
   std::ifstream in_stream(path);
-  std::string result;
+  string result;
 
   if (in_stream) {
-    result =
-        std::string((std::istreambuf_iterator<char>(in_stream)), std::istreambuf_iterator<char>());
+    result = string((std::istreambuf_iterator<char>(in_stream)), std::istreambuf_iterator<char>());
     return result;
   } else {
     daemon_log(LOG_ERR, "cannot open `%s'", path);
@@ -145,24 +146,22 @@ std::string read_file(const char* path) {
 }
 
 // trim from left
-inline std::string& ltrim(std::string& s, const char* t = " \t\n\r\f\v") {
+inline string& ltrim(string& s, const char* t = " \t\n\r\f\v") {
   s.erase(0, s.find_first_not_of(t));
   return s;
 }
 
 // trim from right
-inline std::string& rtrim(std::string& s, const char* t = " \t\n\r\f\v") {
+inline string& rtrim(string& s, const char* t = " \t\n\r\f\v") {
   s.erase(s.find_last_not_of(t) + 1);
   return s;
 }
 
 // trim from left & right
-inline std::string& trim(std::string& s, const char* t = " \t\n\r\f\v") {
-  return ltrim(rtrim(s, t), t);
-}
+inline string& trim(string& s, const char* t = " \t\n\r\f\v") { return ltrim(rtrim(s, t), t); }
 
-static std::string& join(const std::vector<std::string>& elems, std::string& s, std::string delim) {
-  for (std::vector<std::string>::const_iterator ii = elems.begin(); ii != elems.end(); ++ii) {
+static string& join(const vector<string>& elems, string& s, string delim) {
+  for (vector<string>::const_iterator ii = elems.begin(); ii != elems.end(); ++ii) {
     s += (*ii);
     if (ii + 1 != elems.end()) {
       s += delim;
@@ -172,8 +171,8 @@ static std::string& join(const std::vector<std::string>& elems, std::string& s, 
   return s;
 }
 
-static std::string join(const std::vector<std::string>& elems, std::string delim) {
-  std::string s;
+static string join(const vector<string>& elems, string delim) {
+  string s;
   return join(elems, s, delim);
 }
 
@@ -183,7 +182,7 @@ static std::string join(const std::vector<std::string>& elems, std::string delim
  * returns false if not empty
  * returns false if non-ascii
  */
-bool is_only_ascii_whitespace(const std::string& str) {
+bool is_only_ascii_whitespace(const string& str) {
   auto it = str.begin();
   do {
     if (it == str.end()) return true;

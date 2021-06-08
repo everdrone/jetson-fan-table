@@ -6,25 +6,28 @@
 #include "log.h"
 #include "utils.h"
 
-std::vector<std::string> scan_sensors(const char* ignore_substring) {
+using std::string;
+using std::vector;
+
+vector<string> scan_sensors(const char* ignore_substring) {
   glob_t glob_result;
 
-  std::vector<std::string> using_sensors;
-  std::vector<std::string> ignored_sensors;
+  vector<string> using_sensors;
+  vector<string> ignored_sensors;
 
   glob(THERMAL_ZONE_GLOB, GLOB_TILDE, NULL, &glob_result);
   for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
-    std::string thermal_zone_path(glob_result.gl_pathv[i]);
-    std::string sensor_name_path = thermal_zone_path + "/type";
-    std::string sensor_temp_path = thermal_zone_path + "/temp";
+    string thermal_zone_path(glob_result.gl_pathv[i]);
+    string sensor_name_path = thermal_zone_path + "/type";
+    string sensor_temp_path = thermal_zone_path + "/temp";
 
-    std::string name = read_file(sensor_name_path.c_str());
+    string name = read_file(sensor_name_path.c_str());
     name = trim(name);
     unsigned temp = read_file_int(sensor_temp_path.c_str());
 
     // name contains ignore_substring
     // this sensor is not accurate, skip
-    if (name.find(ignore_substring) != std::string::npos) {
+    if (name.find(ignore_substring) != string::npos) {
       ignored_sensors.push_back(sensor_temp_path);
       continue;
     } else {
@@ -47,7 +50,7 @@ std::vector<std::string> scan_sensors(const char* ignore_substring) {
   return using_sensors;
 }
 
-unsigned thermal_average(const std::vector<std::string>& sensors, bool use_max) {
+unsigned thermal_average(const vector<string>& sensors, bool use_max) {
   unsigned temp_sum = 0;
   unsigned temp_max = 0;
 

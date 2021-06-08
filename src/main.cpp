@@ -16,6 +16,9 @@
 #include "thermal.h"
 #include "utils.h"
 
+using std::string;
+using std::vector;
+
 void print_version_exit() {
   std::cout << PACKAGE_STRING << std::endl;
   exit(EXIT_SUCCESS);
@@ -171,7 +174,7 @@ int main(int argc, char* argv[]) {
    */
   debug_log("using table file `%s'", TABLE_PATH);
 
-  std::vector<coord_t> table_config = parse_table(TABLE_PATH);
+  vector<coord_t> table_config = parse_table(TABLE_PATH);
 
   // for (const auto& row : table_config) {
   //   std::cout << row.x << "->" << row.y << std::endl;
@@ -204,7 +207,7 @@ int main(int argc, char* argv[]) {
    * scan temperature sensors
    */
   debug_log("ignoring sensor containing `%s'", options_object.substring);
-  std::vector<std::string> sensor_paths = scan_sensors(options_object.substring);
+  vector<string> sensor_paths = scan_sensors(options_object.substring);
 
   /*
    * daemon loop

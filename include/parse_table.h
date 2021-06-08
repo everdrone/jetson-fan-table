@@ -16,9 +16,12 @@
 #include "log.h"
 #include "utils.h"
 
-std::vector<coord_t> parse_table(const char* path) {
-  std::vector<coord_t> result;
-  std::vector<std::string> lines;
+using std::string;
+using std::vector;
+
+vector<coord_t> parse_table(const char* path) {
+  vector<coord_t> result;
+  vector<string> lines;
 
   try {
     lines = read_lines(path);
@@ -53,7 +56,7 @@ std::vector<coord_t> parse_table(const char* path) {
     if (is_only_ascii_whitespace(lines[i])) {
       continue;
     } else {
-      std::vector<std::string> parsed = split_string(lines[i], " ");
+      vector<string> parsed = split_string(lines[i], " ");
       coord_t row;
 
       try {
@@ -74,7 +77,7 @@ std::vector<coord_t> parse_table(const char* path) {
 }
 
 void check_table(const char* path, bool exit_after = true) {
-  std::vector<std::string> lines;
+  vector<string> lines;
   try {
     lines = read_lines(path);
   } catch (...) {
@@ -89,7 +92,7 @@ void check_table(const char* path, bool exit_after = true) {
       continue;
     } else {
       try {
-        std::vector<std::string> parsed = split_string(lines[i], " ");
+        vector<string> parsed = split_string(lines[i], " ");
         if (!parsed[0].empty() && !parsed[1].empty()) {
           std::stoi(parsed[0]);
           std::stoi(parsed[1]);

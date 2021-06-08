@@ -19,6 +19,9 @@
 #include "log.h"
 #include "utils.h"
 
+using std::string;
+using std::vector;
+
 // #define CONDITIONAL_RESTORE
 
 /*
@@ -27,7 +30,7 @@
  * returns false if no exist OR the access is negated
  */
 bool check_permissions(const char* path, int permissions) {
-  std::string message_template = "%s: no such file `%s'";
+  string message_template = "%s: no such file `%s'";
   if (access(path, F_OK) == -1) {
     // doesnt exist
     daemon_log(LOG_ERR, "no such file `%s'", path);
@@ -65,15 +68,15 @@ bool check_permissions(const char* path, int permissions) {
   return true;
 }
 
-std::string get_soc_family() {
-  std::string soc_family = read_file(SOC_FAMILY_PATH);
+string get_soc_family() {
+  string soc_family = read_file(SOC_FAMILY_PATH);
 
   // save clean sock family
-  if (soc_family.find(TEGRA_186) != std::string::npos) {
+  if (soc_family.find(TEGRA_186) != string::npos) {
     soc_family = TEGRA_186;
-  } else if (soc_family.find(TEGRA_210) != std::string::npos) {
+  } else if (soc_family.find(TEGRA_210) != string::npos) {
     soc_family = TEGRA_210;
-  } else if (soc_family.find(TEGRA_194) != std::string::npos) {
+  } else if (soc_family.find(TEGRA_194) != string::npos) {
     soc_family = TEGRA_194;
   } else {
     // not supported
@@ -102,15 +105,15 @@ bool check_all_access() {
   state &= check_permissions(SOC_FAMILY_PATH, R_OK);
   state &= check_permissions(MACHINE_NAME_PATH, R_OK);
 
-  std::string soc_family = get_soc_family();
-  std::string machine_name = read_file(MACHINE_NAME_PATH);
+  string soc_family = get_soc_family();
+  string machine_name = read_file(MACHINE_NAME_PATH);
 
   // thermal zones
   glob(THERMAL_ZONE_GLOB, GLOB_TILDE, NULL, &glob_result);
   for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
-    std::string thermal_zone_path(glob_result.gl_pathv[i]);
-    std::string sensor_name_path = thermal_zone_path + "/type";
-    std::string sensor_temp_path = thermal_zone_path + "/temp";
+    string thermal_zone_path(glob_result.gl_pathv[i]);
+    string sensor_name_path = thermal_zone_path + "/type";
+    string sensor_temp_path = thermal_zone_path + "/temp";
 
     state &= check_permissions(sensor_name_path.c_str(), R_OK);
     state &= check_permissions(sensor_temp_path.c_str(), R_OK);
@@ -119,12 +122,12 @@ bool check_all_access() {
   // cpus
   glob(CPU_GLOB, GLOB_TILDE, NULL, &glob_result);
   for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
-    std::string cpu_path(glob_result.gl_pathv[i]);
-    std::string cpu_online_path = cpu_path + "/online";
-    std::string cpu_scaling_governor_path = cpu_path + "/cpufreq/scaling_governor";
-    std::string cpu_min_freq_path = cpu_path + "/cpufreq/scaling_min_freq";
-    std::string cpu_max_freq_path = cpu_path + "/cpufreq/scaling_max_freq";
-    std::string cpu_cur_freq_path = cpu_path + "/cpufreq/scaling_cur_freq";
+    string cpu_path(glob_result.gl_pathv[i]);
+    string cpu_online_path = cpu_path + "/online";
+    string cpu_scaling_governor_path = cpu_path + "/cpufreq/scaling_governor";
+    string cpu_min_freq_path = cpu_path + "/cpufreq/scaling_min_freq";
+    string cpu_max_freq_path = cpu_path + "/cpufreq/scaling_max_freq";
+    string cpu_cur_freq_path = cpu_path + "/cpufreq/scaling_cur_freq";
 
     state &= check_permissions(cpu_online_path.c_str(), R_OK | W_OK);
     state |= check_permissions(cpu_scaling_governor_path.c_str(), R_OK);
@@ -135,29 +138,29 @@ bool check_all_access() {
 
   glob(CPU_IDLE_STATE_GLOB, GLOB_TILDE, NULL, &glob_result);
   for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
-    std::string cpu_idle_state_path(glob_result.gl_pathv[i]);
+    string cpu_idle_state_path(glob_result.gl_pathv[i]);
 
     state |= check_permissions(cpu_idle_state_path.c_str(), R_OK | W_OK);
   }
 
   glob(GPU_GLOB, GLOB_TILDE, NULL, &glob_result);
   for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
-    std::string gpu_path(glob_result.gl_pathv[i]);
+    string gpu_path(glob_result.gl_pathv[i]);
     state &= check_permissions(gpu_path.c_str(), F_OK);
 
-    std::string gpu_name_path = gpu_path + "/device/of_node/name";  // name ends with \0
+    string gpu_name_path = gpu_path + "/device/of_node/name";  // name ends with \0
     state &= check_permissions(gpu_name_path.c_str(), R_OK);
 
     // NOTE: only for gp10b, gv11b, gpu
-    std::string gpu_name = read_file(gpu_name_path.c_str());
+    string gpu_name = read_file(gpu_name_path.c_str());
     // equivalent of tr -d '\0'
     gpu_name.erase(std::find(gpu_name.begin(), gpu_name.end(), '\0'), gpu_name.end());
 
     if (gpu_name == "gp10b" || gpu_name == "gv11b" || gpu_name == "gpu") {
-      std::string gpu_min_freq_path = gpu_path + "/min_freq";
-      std::string gpu_max_freq_path = gpu_path + "/max_freq";
-      std::string gpu_cur_freq_path = gpu_path + "/cur_freq";
-      std::string gpu_rail_gate_path = gpu_path + "/device/railgate_enable";
+      string gpu_min_freq_path = gpu_path + "/min_freq";
+      string gpu_max_freq_path = gpu_path + "/max_freq";
+      string gpu_cur_freq_path = gpu_path + "/cur_freq";
+      string gpu_rail_gate_path = gpu_path + "/device/railgate_enable";
 
       state &= check_permissions(gpu_min_freq_path.c_str(), R_OK | W_OK);
       state |= check_permissions(gpu_max_freq_path.c_str(), R_OK);
@@ -190,32 +193,32 @@ bool check_all_access() {
   return state;
 }
 
-std::string store_line(const char* path, const char* value) {
-  std::string result = path;
+string store_line(const char* path, const char* value) {
+  string result = path;
   result += ":";
   result += value;
 
   return result;
 }
 
-std::string store_line(const char* path) {
-  std::string value = read_file(path);
+string store_line(const char* path) {
+  string value = read_file(path);
 
   return store_line(path, value.c_str());
 }
 
 void store_config(const char* path) {
-  std::vector<std::string> lines;
+  vector<string> lines;
   glob_t glob_result;
 
-  std::string soc_family = get_soc_family();
+  string soc_family = get_soc_family();
 
   // store cpu online and scaling_min_freq
   glob(CPU_GLOB, GLOB_TILDE, NULL, &glob_result);
   for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
-    std::string cpu_path(glob_result.gl_pathv[i]);
-    std::string cpu_online_path = cpu_path + "/online";
-    std::string cpu_min_freq_path = cpu_path + "/cpufreq/scaling_min_freq";
+    string cpu_path(glob_result.gl_pathv[i]);
+    string cpu_online_path = cpu_path + "/online";
+    string cpu_min_freq_path = cpu_path + "/cpufreq/scaling_min_freq";
 
     lines.push_back(store_line(cpu_online_path.c_str()));
     lines.push_back(store_line(cpu_min_freq_path.c_str()));
@@ -224,7 +227,7 @@ void store_config(const char* path) {
   // store cpu idle state disable
   glob(CPU_IDLE_STATE_GLOB, GLOB_TILDE, NULL, &glob_result);
   for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
-    std::string cpu_idle_state_path(glob_result.gl_pathv[i]);
+    string cpu_idle_state_path(glob_result.gl_pathv[i]);
 
     lines.push_back(store_line(cpu_idle_state_path.c_str()));
   }
@@ -232,15 +235,15 @@ void store_config(const char* path) {
   // store gpu min_freq and railgate_enable
   glob(GPU_GLOB, GLOB_TILDE, NULL, &glob_result);
   for (unsigned i = 0; i < glob_result.gl_pathc; i++) {
-    std::string gpu_path(glob_result.gl_pathv[i]);
-    std::string gpu_name_path = gpu_path + "/device/of_node/name";  // name ends with \0
-    std::string gpu_name = read_file(gpu_name_path.c_str());
+    string gpu_path(glob_result.gl_pathv[i]);
+    string gpu_name_path = gpu_path + "/device/of_node/name";  // name ends with \0
+    string gpu_name = read_file(gpu_name_path.c_str());
     // equivalent of tr -d '\0'
     gpu_name.erase(std::find(gpu_name.begin(), gpu_name.end(), '\0'), gpu_name.end());
 
     if (gpu_name == "gp10b" || gpu_name == "gv11b" || gpu_name == "gpu") {
-      std::string gpu_min_freq_path = gpu_path + "/min_freq";
-      std::string gpu_rail_gate_path = gpu_path + "/device/railgate_enable";
+      string gpu_min_freq_path = gpu_path + "/min_freq";
+      string gpu_rail_gate_path = gpu_path + "/device/railgate_enable";
 
       lines.push_back(store_line(gpu_min_freq_path.c_str()));
       lines.push_back(store_line(gpu_rail_gate_path.c_str()));
@@ -258,7 +261,7 @@ void store_config(const char* path) {
   lines.push_back(store_line(TEMP_CONTROL_PATH));
   // TODO: add cases for soc_family == "tegra194" && machine = "Clara-AGX"
 
-  std::string file_contents = join(lines, "");
+  string file_contents = join(lines, "");
 #if WRITE_SYSTEM_FILES_DANGEROUS
   write_file_no_eol(path, file_contents.c_str());
 #endif  // WRITE_SYSTEM_FILES_DANGEROUS
@@ -271,11 +274,11 @@ void store_config(const char* path) {
 
 // TODO: we might need to set the railgate first
 void restore_config(const char* path) {
-  std::vector<std::string> lines = read_lines(path);
+  vector<string> lines = read_lines(path);
 
 #ifdef CONDITIONAL_RESTORE
-  std::vector<std::string> conditional_restore_files;
-  std::vector<std::string> might_fail_files;
+  vector<string> conditional_restore_files;
+  vector<string> might_fail_files;
 
   const char* conditional_restore_online_glob = "/sys/devices/system/cpu/cpu*/online";
   const char* conditional_restore_override_glob = "/sys/kernel/debug/clk/override*/state";
@@ -302,11 +305,11 @@ void restore_config(const char* path) {
 #endif  // CONDITIONAL_RESTORE
 
   for (size_t i = 0; i < lines.size() - 1; i++) {
-    std::vector<std::string> components = split_string(lines[i], ":");
+    vector<string> components = split_string(lines[i], ":");
 
     if (components.size() == 2) {
-      std::string file = components[0];
-      std::string value = components[1];
+      string file = components[0];
+      string value = components[1];
 
       // std::cout << file << ":" << value << std::endl;
 

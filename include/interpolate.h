@@ -2,12 +2,14 @@
 
 #include <vector>
 
+using std::vector;
+
 typedef struct {
   unsigned x;
   unsigned y;
 } coord_t;
 
-unsigned interpolate(std::vector<coord_t> c, unsigned x) {
+unsigned interpolate(vector<coord_t> c, unsigned x) {
   unsigned min_x = c[0].x;
   unsigned max_x = c[c.size() - 1].x;
 

@@ -11,6 +11,8 @@
 #include "config.h"
 #include "defines.h"
 
+using std::string;
+
 void _daemon_logv(int priority, const char* message, va_list arglist) {
   int saved_errno = errno;
 
@@ -44,7 +46,7 @@ void debug_log(const char* message, ...) {
  * from: https://stackoverflow.com/a/26221725
  */
 template <typename... Args>
-std::string string_format(const std::string& format, Args... args) {
+string string_format(const string& format, Args... args) {
   int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1;  // Extra space for '\0'
   if (size_s <= 0) {
     throw std::runtime_error("Error during formatting.");
@@ -52,12 +54,12 @@ std::string string_format(const std::string& format, Args... args) {
   auto size = static_cast<size_t>(size_s);
   auto buf = std::make_unique<char[]>(size);
   std::snprintf(buf.get(), size, format.c_str(), args...);
-  return std::string(buf.get(),
-                     buf.get() + size - 1);  // We don't want the '\0' inside
+  return string(buf.get(),
+                buf.get() + size - 1);  // We don't want the '\0' inside
 }
 
 template <typename... Args>
 void sprintf_stderr(const char* format, Args... args) {
-  std::string message = string_format(format, args...);
+  string message = string_format(format, args...);
   std::cerr << message << std::endl;
 }
