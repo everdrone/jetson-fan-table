@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
   int temperature_old = -1;
   unsigned pwm;
 
-  unsigned clocks_wait = MAX_FREQ_WAIT;
+  unsigned clocks_wait = MAX_FREQ_WAIT / options_object.interval;
 
   if (options_object.use_highest) {
     debug_log("using highest measured temperature");
