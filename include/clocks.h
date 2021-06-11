@@ -7,6 +7,7 @@
 
 using std::string;
 
+// TODO: try using jetson_clocks and rm state.conf
 void clocks_max_freq() {
   glob_t glob_result;
 

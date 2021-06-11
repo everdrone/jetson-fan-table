@@ -171,6 +171,10 @@ int main(int argc, char* argv[]) {
 
   unsigned clocks_wait = MAX_FREQ_WAIT;
 
+  if (options_object.use_highest) {
+    debug_log("using highest measured temperature");
+  }
+
   /*
    * read table file
    */
@@ -209,18 +213,16 @@ int main(int argc, char* argv[]) {
    * daemon loop
    */
   while (true) {
-    if (options_object.use_highest) {
-      debug_log("using highest measured temperature");
-    }
     temperature = thermal_average(sensor_paths, options_object.use_highest);
     temperature /= 1000;
 
     if (enable_max_freq) {
       if (clocks_wait <= 0) {
-        // TODO: try jetson_clocks
-        debug_log("maxing out clock frequencies");
-        clocks_max_freq();
-        clocks_did_set = true;
+        if (clocks_did_set == false) {
+          debug_log("maxing out clock frequencies");
+          clocks_max_freq();
+          clocks_did_set = true;
+        }
       } else {
         clocks_wait--;
       }
