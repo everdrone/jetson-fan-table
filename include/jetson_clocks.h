@@ -5,22 +5,9 @@
 #include <string>
 
 #include "log.h"
+#include "util.h"
 
 using std::string;
-
-void remove_file(const char* path) {
-  if (access(path, F_OK)) {
-    if (access(path, W_OK)) {
-      debug_log("removing file: `%s'", path);
-      remove(path);
-    } else {
-      daemon_log(LOG_ERR, "cannot remove file `%s'", path);
-      exit(EXIT_FAILURE);
-    }
-  } else {
-    debug_log("file: `%s' does not exist (yet)", path);
-  }
-}
 
 void store_config(const char* path) {
   // save config
