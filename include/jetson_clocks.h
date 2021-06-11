@@ -5,7 +5,7 @@
 #include <string>
 
 #include "log.h"
-#include "util.h"
+#include "utils.h"
 
 using std::string;
 
