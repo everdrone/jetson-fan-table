@@ -17,7 +17,7 @@ using std::vector;
  * Remove a file from the filesystem
  */
 void remove_file(const char* path) {
-  if (access(path, F_OK)) {
+  if (access(path, F_OK) == 0) {
     if (access(path, W_OK)) {
       debug_log("removing file: `%s'", path);
       remove(path);
