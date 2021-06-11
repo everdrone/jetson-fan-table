@@ -18,9 +18,9 @@ using std::vector;
  */
 void remove_file(const char* path) {
   if (access(path, F_OK) == 0) {
-    if (access(path, W_OK)) {
-      debug_log("removing file: `%s'", path);
-      remove(path);
+    debug_log("removing file: `%s'", path);
+    if (remove(path) == 0) {
+      return;
     } else {
       daemon_log(LOG_ERR, "cannot remove file `%s'", path);
       exit(EXIT_FAILURE);
