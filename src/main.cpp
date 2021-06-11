@@ -12,7 +12,6 @@
 #include "jetson_clocks.h"
 #include "log.h"
 #include "parse_table.h"
-#include "store_restore.h"
 #include "thermal.h"
 #include "utils.h"
 
@@ -141,11 +140,7 @@ int main(int argc, char* argv[]) {
   // print version and exit
   if (options_object.check) {
     // TODO: add check for fan table file
-    if (check_all_access()) {
-      exit(EXIT_SUCCESS);
-    } else {
-      exit(EXIT_FAILURE);
-    }
+    exit(EXIT_SUCCESS);
   }
 
   // Start logging

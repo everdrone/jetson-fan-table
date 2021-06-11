@@ -9,14 +9,12 @@ EXTRA_DIST = data/table readme.md license
 fantable_SOURCES = \
     src/main.cpp \
     include/atexit.h \
-    include/clocks.h \
     include/jetson_clocks.h \
     include/defines.h \
     include/interpolate.h \
     include/log.h \
     include/parse_table.h \
     include/thermal.h \
-    include/store_restore.h \
     include/utils.h
 
 # jft_daemon_CPPFLAGS = $(LIBDAEMON_CFLAGS)
