@@ -151,6 +151,7 @@ int main(int argc, char* argv[]) {
     is_first_run = true;
   }
 
+  remove_file(STORE_FILE);
   daemon_log(LOG_INFO, "saving state to: `%s'", is_first_run ? INITIAL_STORE_FILE : STORE_FILE);
   store_config(is_first_run ? INITIAL_STORE_FILE : STORE_FILE);
 
