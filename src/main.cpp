@@ -169,6 +169,8 @@ int main(int argc, char* argv[]) {
   int temperature_old = -1;
   unsigned pwm;
 
+  unsigned clocks_wait = MAX_FREQ_WAIT;
+
   /*
    * read table file
    */
@@ -197,12 +199,6 @@ int main(int argc, char* argv[]) {
   debug_log("reading pwm_cap file `%s'", PWM_CAP_PATH);
   unsigned pwm_cap = read_file_int(PWM_CAP_PATH);
 
-  if (enable_max_freq) {
-    // FIXME: use set_clocks(), remove jetson_clocks_enable()
-    debug_log("maxing out clock frequencies");
-    clocks_max_freq();
-  }
-
   /*
    * scan temperature sensors
    */
@@ -218,6 +214,17 @@ int main(int argc, char* argv[]) {
     }
     temperature = thermal_average(sensor_paths, options_object.use_highest);
     temperature /= 1000;
+
+    if (enable_max_freq) {
+      if (clocks_wait <= 0) {
+        // TODO: try jetson_clocks
+        debug_log("maxing out clock frequencies");
+        clocks_max_freq();
+        clocks_did_set = true;
+      } else {
+        clocks_wait--;
+      }
+    }
 
     if (temperature != temperature_old) {
       pwm = interpolate(table_config, temperature);

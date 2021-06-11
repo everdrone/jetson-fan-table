@@ -12,10 +12,12 @@
  */
 void exit_handler(int status = EXIT_SUCCESS) {
   if (enable_max_freq) {
-    const char* restore_from_path = is_first_run ? INITIAL_STORE_FILE : STORE_FILE;
+    if (clocks_did_set) {
+      const char* restore_from_path = is_first_run ? INITIAL_STORE_FILE : STORE_FILE;
 
-    debug_log("restoring config %s", restore_from_path);
-    restore_config(restore_from_path);
+      debug_log("restoring config %s", restore_from_path);
+      restore_config(restore_from_path);
+    }
   }
 
   // set target pwm to 0
