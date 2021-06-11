@@ -6,10 +6,10 @@
 #include <thread>
 
 #include "atexit.h"
-#include "clocks.h"
 #include "config.h"
 #include "defines.h"
 #include "interpolate.h"
+#include "jetson_clocks.h"
 #include "log.h"
 #include "parse_table.h"
 #include "store_restore.h"

@@ -2,8 +2,8 @@
 
 #include <signal.h>
 
-#include "clocks.h"
 #include "defines.h"
+#include "jetson_clocks.h"
 #include "log.h"
 #include "utils.h"
 

@@ -10,6 +10,7 @@ fantable_SOURCES = \
     src/main.cpp \
     include/atexit.h \
     include/clocks.h \
+    include/jetson_clocks.h \
     include/defines.h \
     include/interpolate.h \
     include/log.h \
