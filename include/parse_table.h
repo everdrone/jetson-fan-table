@@ -80,7 +80,7 @@ vector<coord_t> parse_table(const char* path, bool check = false) {
         daemon_log(LOG_ERR,
                    "%s: parse error in `%s' at row %d:"
                    "    fan speed should be >= 0 and <= 100. got %d",
-                   , path, i, result[i].y);
+                   path, i, result[i].y);
         sprintf_stderr(
             "%s: parse error in `%s' at row %d:"
             "    fan speed should be >= 0 and <= 100. got %d",

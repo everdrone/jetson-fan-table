@@ -139,7 +139,6 @@ int main(int argc, char* argv[]) {
 
   // print version and exit
   if (options_object.check) {
-    // TODO: add check for fan table file
     parse_table(TABLE_PATH, true);
     exit(EXIT_SUCCESS);
   }
