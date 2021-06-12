@@ -139,7 +139,8 @@ int main(int argc, char* argv[]) {
 
   // print version and exit
   if (options_object.check) {
-    parse_table(TABLE_PATH, true);
+    // FIXME: still gives segmentation fault
+    // parse_table(TABLE_PATH, true);
     exit(EXIT_SUCCESS);
   }
 
