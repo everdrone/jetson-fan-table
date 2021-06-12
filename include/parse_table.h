@@ -19,7 +19,7 @@
 using std::string;
 using std::vector;
 
-vector<coord_t> parse_table(const char* path) {
+vector<coord_t> parse_table(const char* path, bool check = false) {
   vector<coord_t> result;
   vector<string> lines;
 
@@ -72,6 +72,23 @@ vector<coord_t> parse_table(const char* path) {
     }
   }
 #endif  // USE_REGEX
+
+  // NOTE: this part is only to check that the file is written correctly
+  if (check) {
+    for (size_t i = 0; i < result.size(); i++) {
+      if (result[i].y < 0 || result[i].y > 100) {
+        daemon_log(LOG_ERR,
+                   "%s: parse error in `%s' at row %d:"
+                   "    fan speed should be >= 0 and <= 100. got %d",
+                   , path, i, result[i].y);
+        sprintf_stderr(
+            "%s: parse error in `%s' at row %d:"
+            "    fan speed should be >= 0 and <= 100. got %d",
+            argv0, path, i, result[i].y);
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
 
   return result;
 }

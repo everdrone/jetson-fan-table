@@ -1,5 +1,5 @@
 #include <assert.h>
-#include <getopt.h>  // FIXME: use https://sourceforge.net/projects/optionparser ?
+#include <getopt.h>
 
 #include <algorithm>
 #include <chrono>
@@ -140,6 +140,7 @@ int main(int argc, char* argv[]) {
   // print version and exit
   if (options_object.check) {
     // TODO: add check for fan table file
+    parse_table(TABLE_PATH, true);
     exit(EXIT_SUCCESS);
   }
 
@@ -176,7 +177,7 @@ int main(int argc, char* argv[]) {
    */
   debug_log("using table file `%s'", TABLE_PATH);
 
-  vector<coord_t> table_config = parse_table(TABLE_PATH);
+  vector<coord_t> table_config = parse_table(TABLE_PATH, true);
 
   // for (const auto& row : table_config) {
   //   std::cout << row.x << "->" << row.y << std::endl;
@@ -245,7 +246,6 @@ int main(int argc, char* argv[]) {
 
     temperature_old = temperature;
 
-    // FIXME: is this daemon-safe?
     std::this_thread::sleep_for(interval);
   }
 
