@@ -1,0 +1,13 @@
+Source: fantable
+Section: embedded
+Priority: optional
+Maintainer: Giorgio Tropiano <giorgiotropiano@gmail.com>
+Build-Depends: debhelper (>= 10), autotools-dev, autoconf-archive
+Standards-Version: 4.1.2
+Homepage: https://github.com/everdrone/jetson-fan-table
+
+Package: fantable
+Architecture: arm64
+Depends: ${misc:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>

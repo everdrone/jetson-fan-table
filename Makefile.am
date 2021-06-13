@@ -31,3 +31,16 @@ sytemdsys_DATA = data/fantable.service
 
 pkgsysconfdir=$(sysconfdir)/fantable
 pkgsysconf_DATA = data/table
+
+# rules to package a .deb file
+debfile_name=$(PACKAGE_NAME)-$(PACKAGE_VERSION)
+
+deb: dist
+    # extract dist into a new directory
+	tar xzf $(top_builddir)/$(debfile_name).tar.gz
+	cp -r $(top_srcdir)/debian $(builddir)/$(debfile_name)
+    # build into the extracted directory
+	cd $(debfile_name) && \
+	debuild --no-tgz-check -us -uc -tc
+    # clean uo
+	rm -r $(debfile_name)
