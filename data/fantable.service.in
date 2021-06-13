@@ -1,5 +1,5 @@
 # this file is part of jetson-fantable
-# more at https://github.com/everdrone/jetson-fantable
+# more at https://github.com/everdrone/jetson-fan-table
 
 [Unit]
 Description=Fan Table Control
