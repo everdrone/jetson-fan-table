@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: dependencies
+        run: sudo apt-get install autoconf-archive debhelper
       - name: autogen.sh
         run: ./autogen.sh
       - name: configure
