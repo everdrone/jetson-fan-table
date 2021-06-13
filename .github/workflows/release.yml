@@ -24,7 +24,7 @@ jobs:
             --volume "${PWD}/artifacts:/artifacts"
           shell: /bin/bash
           install: |
-            apt-get upadte -y
+            apt-get update -y
             apt-get install build-essential autoconf-archive dh-make debhelper devscripts fakeroot lintian pbuilder
           run: |
             ./autogen.sh
