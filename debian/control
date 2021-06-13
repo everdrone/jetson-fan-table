@@ -9,5 +9,7 @@ Homepage: https://github.com/everdrone/jetson-fan-table
 Package: fantable
 Architecture: arm64
 Depends: ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Description: Jetson Fan Temperature Table Controller
+ Daemon to control the fan speed of the NVIDIA Jetson Nano
+ by doing a 2-dimensional linear interpolation of a
+ <temperature>-<speed> table
