@@ -17,20 +17,20 @@ jobs:
         with:
           arch: aarch64
           distro: ubuntu18.04
-        githubToken: ${{ github.token }}
-        setup: |
-          mkdir -p "${PWD}/artifacts"
-        dockerRunArgs: |
-          --volume "${PWD}/artifacts:/artifacts"
-        shell: /bin/bash
-        install: |
-          apt-get upadte -y
-          apt-get install build-essential autoconf-archive dh-make debhelper devscripts fakeroot lintian pbuilder
-        run: |
-          ./autogen.sh
-          ./configure
-          make deb
-          cp fantable_*.deb /artifacts
+          githubToken: ${{ github.token }}
+          setup: |
+            mkdir -p "${PWD}/artifacts"
+          dockerRunArgs: |
+            --volume "${PWD}/artifacts:/artifacts"
+          shell: /bin/bash
+          install: |
+            apt-get upadte -y
+            apt-get install build-essential autoconf-archive dh-make debhelper devscripts fakeroot lintian pbuilder
+          run: |
+            ./autogen.sh
+            ./configure
+            make deb
+            cp fantable_*.deb /artifacts
       - name: deb file path
         run: echo "::set-output name=file_path::$(readlink -f ${PWD}/artifacts/fantable_*.deb)"
         shell: bash
