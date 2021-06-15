@@ -17,7 +17,6 @@ jobs:
         with:
           arch: aarch64
           distro: ubuntu18.04
-          githubToken: ${{ github.token }}
           setup: |
             mkdir -p "${PWD}/artifacts"
           dockerRunArgs: |
