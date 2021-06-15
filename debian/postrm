@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -e
+
+# restore to initial clocks configuration
+FANTABLE_INITIAL_CONFIG="/etc/fantable/initial.conf"
+if [[ -f $FANTABLE_INITIAL_CONFIG ]]; then
+  jetson_clocks --restore $FANTABLE_INITIAL_CONFIG 2>/dev/null
+fi
+
+# remove all the files
+FANTABLE_CONF_DIRECTORY="/etc/fantable"
+if [[ -f $FANTABLE_CONF_DIRECTORY ]]; then
+  rm -r $FANTABLE_CONF_DIRECTORY
+fi
+
+FANTABLE_SYSTEMD_SERVICE="/etc/systemd/system/fantable.service"
+if [[ -f $FANTABLE_SYSTEMD_SERVICE ]]; then
+  rm -r $FANTABLE_SYSTEMD_SERVICE
+fi
+
+FANTABLE_BINARY="/usr/sbin/fantable"
+if [[ -f $FANTABLE_BINARY ]]; then
+  rm -r $FANTABLE_BINARY
+fi
+
+#DEBHELPER#
+
+exit 0

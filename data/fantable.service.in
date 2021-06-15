@@ -4,6 +4,8 @@
 [Unit]
 Description=Fan Table Control
 ConditionPathExists=@sysconfdir@/fantable/table
+# Requires the GPU files to be set first
+After=nvpmodel.service
 
 [Service]
 Type=simple

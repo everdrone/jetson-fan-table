@@ -156,6 +156,7 @@ int main(int argc, char* argv[]) {
     is_first_run = true;
   }
 
+  // if fantable runs AFTER nvpmodel.service this should not be necessary
   remove_file(STORE_FILE);
   daemon_log(LOG_INFO, "saving state to: `%s'", is_first_run ? INITIAL_STORE_FILE : STORE_FILE);
   store_config(is_first_run ? INITIAL_STORE_FILE : STORE_FILE);
@@ -218,6 +219,7 @@ int main(int argc, char* argv[]) {
     temperature /= 1000;
 
     if (enable_max_freq) {
+      // if fantable.service runs AFTER nvpmodel.service this should not be necessary
       if (clocks_wait <= 0) {
         if (clocks_did_set == false) {
           debug_log("maxing out clock frequencies");
