@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <getopt.h>
+// #include <libgen.h>
 
 #include <algorithm>
 #include <chrono>
@@ -12,6 +13,7 @@
 #include "jetson_clocks.h"
 #include "log.h"
 #include "parse_table.h"
+#include "pid.h"
 #include "thermal.h"
 #include "utils.h"
 
@@ -25,19 +27,65 @@ void print_version_exit() {
 
 void print_help_exit() {
   printf(
+      // clang-format off
       "%s [options]\n"
       "    -h --help                       Show this help\n"
       "    -v --version                    Show version\n"
-      "    -c --check                      Check configurations and permissions\n"
       "    -i --interval <int>             Interval in seconds (defaults to 2)\n"
       "    -t --enable-tach                Enable the fan tachometer for speed monitoring\n"
+      "    -c --check                      Returns 0 if process is running\n"
+      "    -s --status                     Print process status\n"
+      "                                    Can be used with options -I and -A\n"
       "    -M --no-max-freq                Do not set CPU and GPU clocks\n"
       "    -A --no-average                 Use the highest measured temperature instead of\n"
       "                                    calculating the average\n"
-      "    -s --ignore-sensors <string>    Ignore sensors that match a substring (case sensitive)\n"
+      "    -I --ignore-sensors <string>    Ignore sensors that match a substring (case sensitive)\n"
       "       --debug                      Increase verbosity in syslog\n",
+      // clang-format on
       argv0);
   exit(EXIT_SUCCESS);
+}
+
+void print_status(const char* ingore_substr, bool use_highest) {
+  pid_t pid;
+  int retval = EXIT_FAILURE;
+
+  if ((pid = pid_file_is_running()) >= 0) {
+    printf("process pid: %d\n", pid);
+
+    vector<string> sensor_paths = scan_sensors(ingore_substr);
+    unsigned temperature = 0;
+    unsigned fan_pwm = 0;
+    unsigned cur_rpm = 0;
+
+    temperature = thermal_average(sensor_paths, use_highest);
+    fan_pwm = read_file_int(CUR_PWM_PATH);
+
+    printf("temperature: %d C\n", temperature / 1000);
+    printf("current pwm: %d\n", fan_pwm);
+
+    if (read_file_int(TACH_ENABLE_PATH) == 1) {
+      cur_rpm = read_file_int(MEASURED_RPM_PATH);
+      printf("current rpm: %d\n", cur_rpm);
+    } else {
+      printf("tachometer is disabled\n");
+    }
+
+    retval = EXIT_SUCCESS;
+  } else {
+    sprintf_stderr("%s is not running", argv0);
+  }
+
+  exit(retval);
+}
+
+void check_pid() {
+  pid_t pid;
+  if ((pid = pid_file_is_running()) >= 0) {
+    exit(EXIT_SUCCESS);
+  } else {
+    exit(EXIT_FAILURE);
+  }
 }
 
 enum options_enum {
@@ -48,77 +96,88 @@ typedef struct options_struct {
   bool help = false;
   bool version = false;
   bool check = false;
+  bool status = false;
   bool use_highest = false;
+  // TODO: move this setting to a config file and enable ovverriding
+  //       and enable overriding it with this cli option
   string substring = "PMIC";
   unsigned interval = 2;
 } options_t;
 
 int main(int argc, char* argv[]) {
-  // set global program name
-  argv0 = argv[0];
+  //
+  // the program name can be set by using the config.h PACKAGE_NAME
+  //
+  // argv0 = basename(argv[0]);
+
+  pid_t pid;
 
   /*
    * Parse options
    */
-  options_t options_object;
+  options_t oobj;
 
   // clang-format off
   static const struct option long_options[] = {
     {"help",            no_argument,        NULL, 'h'},
     {"version",         no_argument,        NULL, 'v'},
-    {"check",           no_argument,        NULL, 'c'},
     {"interval",        required_argument,  NULL, 'i'},
     {"enable-tach",     no_argument,        NULL, 't'},
+    {"check",           no_argument,        NULL, 'c'},
+    {"status",          no_argument,        NULL, 's'},
     {"no-max-freq",     no_argument,        NULL, 'M'},
     {"no-average",      no_argument,        NULL, 'A'},
-    {"ignore-sensors",  required_argument,  NULL, 's'},
+    {"ignore-sensors",  required_argument,  NULL, 'I'},
     {"debug",           no_argument,        NULL, OPTION_DEBUG},
     {NULL,              0,                  NULL, 0}};
   // clang-format on
 
   int opt;
-  while ((opt = getopt_long(argc, argv, "hvci:tMAs:", long_options, NULL)) >= 0) {
+  while ((opt = getopt_long(argc, argv, "hvcsi:tMAI:", long_options, NULL)) >= 0) {
     switch (opt) {
       case 'h':
-        options_object.help = true;
+        oobj.help = true;
         break;
       case 'v':
-        options_object.version = true;
-        break;
-      case 'c':
-        options_object.check = true;
+        oobj.version = true;
         break;
       case 't':
         enable_tach = true;
+        break;
+      case 'c':
+        oobj.check = true;
+        break;
+      case 's':
+        oobj.status = true;
         break;
       case 'M':
         enable_max_freq = false;
         break;
       case 'A':
-        options_object.use_highest = true;
+        oobj.use_highest = true;
         break;
       case 'i':
         try {
-          options_object.interval = std::stoul(optarg);
+          oobj.interval = std::stoul(optarg);
         } catch (...) {
           daemon_log(LOG_ERR, "cannot parse argument `%s' for --interval", optarg);
           fprintf(stderr, "%s: cannot parse argument `%s' for --interval\n", argv0, optarg);
           exit(EXIT_FAILURE);
         }
         break;
-      case 's':
-        options_object.substring = optarg;
+      case 'I':
+        oobj.substring = optarg;
         break;
       case OPTION_DEBUG:
         enable_debug = true;
         break;
-      // case '?':
-      //   if (optopt == 'i')
-      //     fprintf(stderr, "Option -%c requires an argument\n", optopt);
-      //   else if (isprint(optopt))
-      //     fprintf(stderr, "Unknown option `-%c'\n", optopt);
-      //   else
-      //     fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+      case '?':
+        if (optopt == 'i' || optopt == 'I')
+          fprintf(stderr, "Option -%c requires an argument\n", optopt);
+        else if (isprint(optopt))
+          fprintf(stderr, "Unknown option `-%c'\n", optopt);
+        else
+          fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
       default:
         return -1;
     }
@@ -132,60 +191,98 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
+#ifdef DEBUG_OPTIONS
+  std::cout << "help            " << oobj.help << std::endl;
+  std::cout << "version         " << oobj.version << std::endl;
+  std::cout << "interval        " << oobj.interval << std::endl;
+  std::cout << "enable_tach     " << enable_tach << std::endl;
+  std::cout << "check           " << oobj.check << std::endl;
+  std::cout << "status          " << oobj.status << std::endl;
+  std::cout << "enable_max_freq " << enable_max_freq << std::endl;
+  std::cout << "use_highest     " << oobj.use_highest << std::endl;
+  std::cout << "substring       " << oobj.substring << std::endl;
+  std::cout << "enable_debug    " << enable_debug << std::endl;
+#endif
+
   // print help and exit
-  if (options_object.help) {
+  if (oobj.help) {
     print_help_exit();
   }
 
   // print version and exit
-  if (options_object.version) {
+  if (oobj.version) {
     print_version_exit();
   }
 
+  if (oobj.status) {
+    // print daemon status + information and exit
+    print_status(oobj.substring.c_str(), oobj.use_highest);
+  }
+
   // print version and exit
-  if (options_object.check) {
-    /*
-     * FIXME: still gives segmentation fault
-     *
-     * probably because of invalid table file
-     */
-    // parse_table(TABLE_PATH, true);
-    exit(EXIT_SUCCESS);
+  if (oobj.check) {
+    check_pid();
   }
 
   // Start logging
   daemon_log(LOG_INFO, "Starting fan control daemon...");
+
+  register_exit_handler();
+
+  /*
+   * check and set pid file
+   */
+  // pid_file_is_running() can set errno = ENOENT
+  int saved_errno = errno;
+  if ((pid = pid_file_is_running()) > 0) {
+    daemon_log(LOG_ERR, "process is already running with pid %d", pid);
+    sprintf_stderr("%s: process is already running with pid %d", argv0, pid);
+    exit(EXIT_FAILURE);
+  } else {
+    daemon_log(LOG_INFO, "creating pid file");
+
+    if (errno == ENOENT) {
+      // ignore ENOENT if everything is ok
+      errno = saved_errno;
+    }
+
+    if (pid_file_create() < 0) {
+      daemon_log(LOG_ERR, "cannot create pid file");
+      sprintf_stderr("%s: cannot create pid file", argv0);
+      exit(EXIT_FAILURE);
+    }
+  }
 
   // check if is first time running
   if (access(INITIAL_STORE_FILE, F_OK) == -1) {
     is_first_run = true;
   }
 
-  // if fantable runs AFTER nvpmodel.service this should not be necessary
+  // cleanup before jetson_clocks saves again
   remove_file(STORE_FILE);
   daemon_log(LOG_INFO, "saving state to: `%s'", is_first_run ? INITIAL_STORE_FILE : STORE_FILE);
   store_config(is_first_run ? INITIAL_STORE_FILE : STORE_FILE);
 
-  register_exit_handler();
-
   // enbale tachomenter
   if (enable_tach) {
+#if WRITE_SYSTEM_FILES_DANGEROUS
     debug_log("enabling tachometer");
     tach_state = read_file_int(TACH_ENABLE_PATH);
     write_file_int(TACH_ENABLE_PATH, 1);
+#endif
   }
 
-  debug_log("using interval of %d seconds", options_object.interval);
-
-  std::chrono::seconds interval(options_object.interval);
+  debug_log("using interval of %d seconds", oobj.interval);
+  std::chrono::seconds interval(oobj.interval);
 
   unsigned temperature;
   int temperature_old = -1;
   unsigned pwm;
 
-  unsigned clocks_wait = MAX_FREQ_WAIT / options_object.interval;
+  // we can also skip if the process starts after nvpmodel.service
+  unsigned clocks_wait = MAX_FREQ_WAIT / oobj.interval;
 
-  if (options_object.use_highest) {
+  if (oobj.use_highest) {
     debug_log("using highest measured temperature");
   }
 
@@ -195,10 +292,6 @@ int main(int argc, char* argv[]) {
   debug_log("using table file `%s'", TABLE_PATH);
 
   vector<coord_t> table_config = parse_table(TABLE_PATH, true);
-
-  // for (const auto& row : table_config) {
-  //   std::cout << row.x << "->" << row.y << std::endl;
-  // }
 
   if (table_config.size() < 1) {
     // TODO: handle invalid (empty?) table file
@@ -220,18 +313,18 @@ int main(int argc, char* argv[]) {
   /*
    * scan temperature sensors
    */
-  debug_log("ignoring sensor containing `%s'", options_object.substring.c_str());
-  vector<string> sensor_paths = scan_sensors(options_object.substring.c_str());
+  debug_log("ignoring sensor containing `%s'", oobj.substring.c_str());
+  vector<string> sensor_paths = scan_sensors(oobj.substring.c_str());
 
   /*
    * daemon loop
    */
   while (true) {
-    temperature = thermal_average(sensor_paths, options_object.use_highest);
+    temperature = thermal_average(sensor_paths, oobj.use_highest);
     temperature /= 1000;
 
     if (enable_max_freq) {
-      // if fantable.service runs AFTER nvpmodel.service this should not be necessary
+      // if fantable runs AFTER nvpmodel.service this should not be necessary
       if (clocks_wait <= 0) {
         if (clocks_did_set == false) {
           debug_log("maxing out clock frequencies");
@@ -255,9 +348,9 @@ int main(int argc, char* argv[]) {
       // make sure it's between the bounds
       pwm = std::clamp(pwm, unsigned(0), pwm_cap);
 
+#if WRITE_SYSTEM_FILES_DANGEROUS
       debug_log("target_pwm: %d", pwm);
       debug_log("writing pwm to `%s'", TARGET_PWM_PATH);
-#if WRITE_SYSTEM_FILES_DANGEROUS
       write_file_int(TARGET_PWM_PATH, pwm);
 #endif
     }

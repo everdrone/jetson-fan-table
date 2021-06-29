@@ -5,6 +5,7 @@
 #include "defines.h"
 #include "jetson_clocks.h"
 #include "log.h"
+#include "pid.h"
 #include "utils.h"
 
 /**
@@ -12,9 +13,11 @@
  */
 void exit_handler(int status = EXIT_SUCCESS) {
   if (enable_tach) {
-    // restore tach
+// restore tach
+#if WRITE_SYSTEM_FILES_DANGEROUS
     debug_log("restoring previous tachometer state");
     write_file_int(TACH_ENABLE_PATH, tach_state);
+#endif
   }
 
   if (enable_max_freq) {
@@ -27,11 +30,16 @@ void exit_handler(int status = EXIT_SUCCESS) {
   }
 
   // set target pwm to 0
-  debug_log("resetting target_pwm to 0");
-
 #if WRITE_SYSTEM_FILES_DANGEROUS
+  debug_log("resetting target_pwm to 0");
   write_file_int(TARGET_PWM_PATH, 0);
 #endif
+
+  daemon_log(LOG_INFO, "removing pid file");
+  if (pid_file_remove() < 0) {
+    daemon_log(LOG_ERR, "cannot remove pid file");
+    sprintf_stderr("%s: cannot remove pid file", argv0);
+  }
 
   daemon_log(LOG_INFO, "Exiting with status code %d", errno);
   std::cout << std::endl;

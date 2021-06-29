@@ -1,4 +1,4 @@
-AC_INIT([fantable], [1.1.0], [])
+AC_INIT([fantable], [2.0.0], [])
 AM_INIT_AUTOMAKE([-Wall foreign subdir-objects])
 
 AX_CXX_COMPILE_STDCXX_17

@@ -1,3 +1,10 @@
+fantable (2.0.0) unstable; urgency=low
+
+  * Add pid locking functionality
+  * Add --status and --check options
+
+ -- Giorgio Tropiano <giorgiotropiano@gmail.com>  Tue, 29 Jun 2021 23:37:00 +0200
+
 fantable (1.1.0) unstable; urgency=low
 
   * Add option to enable fan tachometer

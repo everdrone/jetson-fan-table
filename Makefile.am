@@ -14,6 +14,7 @@ fantable_SOURCES = \
     include/interpolate.h \
     include/log.h \
     include/parse_table.h \
+    include/pid.h \
     include/thermal.h \
     include/utils.h
 

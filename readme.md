@@ -31,6 +31,16 @@ sudo systemctl start fantable
 sudo systemctl enable fantable
 ```
 
+To check the status of the daemon use the `--check` and `--status` options
+
+```sh
+$ sudo fantable -s
+process pid: 3157
+temperature: 37 C
+current pwm: 86
+current rpm: 1370
+```
+
 ## Configuration
 
 The configuration files are located in `/etc/fantable`
