@@ -1,3 +1,9 @@
+fantable (2.0.1) unstable; urgency=low
+
+  * Remove unnecessary syslog lines
+
+ -- Giorgio Tropiano <giorgiotropiano@gmail.com>  Wed, 30 Jun 2021 01:03:00 +0200
+
 fantable (2.0.0) unstable; urgency=low
 
   * Add pid locking functionality

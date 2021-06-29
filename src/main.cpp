@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
     sprintf_stderr("%s: process is already running with pid %d", argv0, pid);
     exit(EXIT_FAILURE);
   } else {
-    daemon_log(LOG_INFO, "creating pid file");
+    debug_log("creating pid file");
 
     if (errno == ENOENT) {
       // ignore ENOENT if everything is ok
