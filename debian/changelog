@@ -1,3 +1,9 @@
+fantable (1.1.0) unstable; urgency=low
+
+  * Add option to enable fan tachometer
+
+ -- Giorgio Tropiano <giorgiotropiano@gmail.com>  Tue, 29 Jun 2021 16:14:00 +0200
+
 fantable (1.0.1-1) unstable; urgency=medium
 
   * Waits for nvpmodel.service before saving state.conf file

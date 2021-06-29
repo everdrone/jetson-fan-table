@@ -170,6 +170,7 @@ int main(int argc, char* argv[]) {
 
   // enbale tachomenter
   if (enable_tach) {
+    debug_log("enabling tachometer");
     tach_state = read_file_int(TACH_ENABLE_PATH);
     write_file_int(TACH_ENABLE_PATH, 1);
   }

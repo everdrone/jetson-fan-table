@@ -13,6 +13,7 @@
 void exit_handler(int status = EXIT_SUCCESS) {
   if (enable_tach) {
     // restore tach
+    debug_log("restoring previous tachometer state");
     write_file_int(TACH_ENABLE_PATH, tach_state);
   }
 
