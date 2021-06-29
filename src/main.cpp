@@ -30,6 +30,7 @@ void print_help_exit() {
       "    -v --version                    Show version\n"
       "    -c --check                      Check configurations and permissions\n"
       "    -i --interval <int>             Interval in seconds (defaults to 2)\n"
+      "    -t --enable-tach                Enable the fan tachometer for speed monitoring\n"
       "    -M --no-max-freq                Do not set CPU and GPU clocks\n"
       "    -A --no-average                 Use the highest measured temperature instead of\n"
       "                                    calculating the average\n"
@@ -43,12 +44,12 @@ enum options_enum {
   OPTION_DEBUG = 256,
 };
 
-typedef struct {
+typedef struct options_struct {
   bool help = false;
   bool version = false;
   bool check = false;
   bool use_highest = false;
-  char* substring = "PMIC";
+  string substring = "PMIC";
   unsigned interval = 2;
 } options_t;
 
@@ -67,6 +68,7 @@ int main(int argc, char* argv[]) {
     {"version",         no_argument,        NULL, 'v'},
     {"check",           no_argument,        NULL, 'c'},
     {"interval",        required_argument,  NULL, 'i'},
+    {"enable-tach",     no_argument,        NULL, 't'},
     {"no-max-freq",     no_argument,        NULL, 'M'},
     {"no-average",      no_argument,        NULL, 'A'},
     {"ignore-sensors",  required_argument,  NULL, 's'},
@@ -75,7 +77,7 @@ int main(int argc, char* argv[]) {
   // clang-format on
 
   int opt;
-  while ((opt = getopt_long(argc, argv, "hvci:MAs:", long_options, NULL)) >= 0) {
+  while ((opt = getopt_long(argc, argv, "hvci:tMAs:", long_options, NULL)) >= 0) {
     switch (opt) {
       case 'h':
         options_object.help = true;
@@ -85,6 +87,9 @@ int main(int argc, char* argv[]) {
         break;
       case 'c':
         options_object.check = true;
+        break;
+      case 't':
+        enable_tach = true;
         break;
       case 'M':
         enable_max_freq = false;
@@ -163,6 +168,12 @@ int main(int argc, char* argv[]) {
 
   register_exit_handler();
 
+  // enbale tachomenter
+  if (enable_tach) {
+    tach_state = read_file_int(TACH_ENABLE_PATH);
+    write_file_int(TACH_ENABLE_PATH, 1);
+  }
+
   debug_log("using interval of %d seconds", options_object.interval);
 
   std::chrono::seconds interval(options_object.interval);
@@ -208,8 +219,8 @@ int main(int argc, char* argv[]) {
   /*
    * scan temperature sensors
    */
-  debug_log("ignoring sensor containing `%s'", options_object.substring);
-  vector<string> sensor_paths = scan_sensors(options_object.substring);
+  debug_log("ignoring sensor containing `%s'", options_object.substring.c_str());
+  vector<string> sensor_paths = scan_sensors(options_object.substring.c_str());
 
   /*
    * daemon loop

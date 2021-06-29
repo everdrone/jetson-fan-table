@@ -16,6 +16,7 @@
 #define PWM_CAP_PATH "/sys/devices/pwm-fan/pwm_cap"
 #define TARGET_PWM_PATH "/sys/devices/pwm-fan/target_pwm"
 #define TEMP_CONTROL_PATH "/sys/devices/pwm-fan/temp_control"
+#define TACH_ENABLE_PATH "/sys/devices/pwm-fan/tach_enable"
 // cpu
 #define CPU_GLOB "/sys/devices/system/cpu/cpu[0-9]*"
 #define CPU_IDLE_STATE_GLOB "/sys/devices/system/cpu/cpu[0-9]/cpuidle/state[0-9]/disable"
@@ -41,5 +42,7 @@
 static bool enable_debug = false;
 static bool enable_max_freq = true;
 static bool clocks_did_set = false;
-static char* argv0 = "fantable";
+static const char* argv0 = "fantable";
 static bool is_first_run = false;
+static bool enable_tach = false;
+static int tach_state = 0;

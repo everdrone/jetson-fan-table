@@ -11,6 +11,11 @@
  * Exit handler. turn off the fan before leaving
  */
 void exit_handler(int status = EXIT_SUCCESS) {
+  if (enable_tach) {
+    // restore tach
+    write_file_int(TACH_ENABLE_PATH, tach_state);
+  }
+
   if (enable_max_freq) {
     if (clocks_did_set) {
       const char* restore_from_path = is_first_run ? INITIAL_STORE_FILE : STORE_FILE;
