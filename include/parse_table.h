@@ -73,7 +73,7 @@ vector<coord_t> parse_table(const char* path, bool check = false) {
   }
 #endif  // USE_REGEX
 
-  // NOTE: this part is only to check that the file is written correctly
+  // NOTE: this part only checks that the file is written correctly
   if (check) {
     for (size_t i = 0; i < result.size(); i++) {
       if (result[i].y < 0 || result[i].y > 100) {

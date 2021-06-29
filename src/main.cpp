@@ -48,7 +48,7 @@ void print_help_exit() {
 
 void print_status(const char* ingore_substr, bool use_highest) {
   pid_t pid;
-  int retval = EXIT_FAILURE;
+  int retval = ESRCH;
 
   if ((pid = pid_file_is_running()) >= 0) {
     printf("process pid: %d\n", pid);
@@ -84,7 +84,7 @@ void check_pid() {
   if ((pid = pid_file_is_running()) >= 0) {
     exit(EXIT_SUCCESS);
   } else {
-    exit(EXIT_FAILURE);
+    exit(ESRCH);
   }
 }
 
