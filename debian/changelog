@@ -1,3 +1,9 @@
+fantable (2.0.2) bionic; urgency=low
+
+  * Use appropriate error codes when handling pid file
+
+ -- Giorgio Tropiano <giorgiotropiano@gmail.com>  Wed, 30 Jun 2021 01:42:00 +0200
+
 fantable (2.0.1) unstable; urgency=low
 
   * Remove unnecessary syslog lines
