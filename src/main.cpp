@@ -224,6 +224,12 @@ int main(int argc, char* argv[]) {
     check_pid();
   }
 
+  if (!is_sudo_or_root()) {
+    daemon_log(LOG_INFO, "requested operation requires superuser privilege");
+    sprintf_stderr("%s: requested operation requires superuser privilege", argv0);
+    exit(EACCES);
+  }
+
   // Start logging
   daemon_log(LOG_INFO, "Starting fan control daemon...");
 
