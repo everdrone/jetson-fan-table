@@ -1,3 +1,4 @@
 ./fantable /usr/sbin
 ./data/table /etc/fantable
+./data/config /etc/fantable
 ./data/fantable.service /etc/systemd/system

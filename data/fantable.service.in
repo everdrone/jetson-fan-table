@@ -1,5 +1,5 @@
-# this file is part of jetson-fantable
-# more at https://github.com/everdrone/jetson-fan-table
+# This file is part of fantable
+# More at https://github.com/everdrone/jetson-fan-table
 
 [Unit]
 Description=Fan Table Control
@@ -9,7 +9,7 @@ After=nvpmodel.service
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/fantable -A
+ExecStart=/usr/sbin/fantable
 User=root
 
 [Install]

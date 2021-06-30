@@ -4,19 +4,24 @@ AM_CPPFLAGS = \
 
 sbin_PROGRAMS = fantable
 
-EXTRA_DIST = data/table readme.md license
+EXTRA_DIST = data/table data/config readme.md license
 
 fantable_SOURCES = \
     src/main.cpp \
     include/atexit.h \
     include/jetson_clocks.h \
+    include/load_config.h \
     include/defines.h \
     include/interpolate.h \
     include/log.h \
     include/parse_table.h \
     include/pid.h \
     include/thermal.h \
-    include/utils.h
+    include/utils.h \
+    vendor/inih/cpp/INIReader.h \
+    vendor/inih/cpp/INIReader.cpp \
+    vendor/inih/ini.h \
+    vendor/inih/ini.c
 
 # jft_daemon_CPPFLAGS = $(LIBDAEMON_CFLAGS)
 # jft_daemon_LDFLAGS = $(LIBDAEMON_LIBS)
@@ -31,7 +36,7 @@ sytemdsys_DATA = data/fantable.service
 	$(AM_V_GEN)sed -e 's,@sysconfdir\@,$(sysconfdir),g' $< > $@
 
 pkgsysconfdir=$(sysconfdir)/fantable
-pkgsysconf_DATA = data/table
+pkgsysconf_DATA = data/table data/config
 
 # rules to package a .deb file
 debfile_name=$(PACKAGE_NAME)-$(PACKAGE_VERSION)

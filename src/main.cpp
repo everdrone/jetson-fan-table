@@ -11,6 +11,7 @@
 #include "defines.h"
 #include "interpolate.h"
 #include "jetson_clocks.h"
+#include "load_config.h"
 #include "log.h"
 #include "parse_table.h"
 #include "pid.h"
@@ -88,22 +89,6 @@ void check_pid() {
   }
 }
 
-enum options_enum {
-  OPTION_DEBUG = 256,
-};
-
-typedef struct options_struct {
-  bool help = false;
-  bool version = false;
-  bool check = false;
-  bool status = false;
-  bool use_highest = false;
-  // TODO: move this setting to a config file and enable ovverriding
-  //       and enable overriding it with this cli option
-  string substring = "PMIC";
-  unsigned interval = 2;
-} options_t;
-
 int main(int argc, char* argv[]) {
   //
   // the program name can be set by using the config.h PACKAGE_NAME
@@ -111,10 +96,6 @@ int main(int argc, char* argv[]) {
   // argv0 = basename(argv[0]);
 
   pid_t pid;
-
-  /*
-   * Parse options
-   */
   options_t oobj;
 
   // clang-format off
@@ -191,19 +172,6 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
-#ifdef DEBUG_OPTIONS
-  std::cout << "help            " << oobj.help << std::endl;
-  std::cout << "version         " << oobj.version << std::endl;
-  std::cout << "interval        " << oobj.interval << std::endl;
-  std::cout << "enable_tach     " << enable_tach << std::endl;
-  std::cout << "check           " << oobj.check << std::endl;
-  std::cout << "status          " << oobj.status << std::endl;
-  std::cout << "enable_max_freq " << enable_max_freq << std::endl;
-  std::cout << "use_highest     " << oobj.use_highest << std::endl;
-  std::cout << "substring       " << oobj.substring << std::endl;
-  std::cout << "enable_debug    " << enable_debug << std::endl;
-#endif
-
   // print help and exit
   if (oobj.help) {
     print_help_exit();
@@ -214,15 +182,32 @@ int main(int argc, char* argv[]) {
     print_version_exit();
   }
 
+  // check pid and exit
+  if (oobj.check) {
+    check_pid();
+  }
+
+  // --help, --version and --check don't need the config
+  load_config(&oobj);
+
   if (oobj.status) {
     // print daemon status + information and exit
     print_status(oobj.substring.c_str(), oobj.use_highest);
   }
 
-  // print version and exit
-  if (oobj.check) {
-    check_pid();
-  }
+#ifdef DEBUG_OPTIONS
+  std::cout << "help            " << oobj.help << std::endl;
+  std::cout << "version         " << oobj.version << std::endl;
+  std::cout << "check           " << oobj.check << std::endl;
+  std::cout << "status          " << oobj.status << std::endl;
+  std::cout << "enable_debug    " << enable_debug << std::endl;
+
+  std::cout << "interval        " << oobj.interval << std::endl;
+  std::cout << "substring       " << oobj.substring << std::endl;
+  std::cout << "enable_max_freq " << enable_max_freq << std::endl;
+  std::cout << "use_highest     " << oobj.use_highest << std::endl;
+  std::cout << "enable_tach     " << enable_tach << std::endl;
+#endif
 
   if (!is_sudo_or_root()) {
     daemon_log(LOG_INFO, "requested operation requires superuser privilege");

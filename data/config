@@ -1,0 +1,27 @@
+; This file is part of fantable
+; More at https://github.com/everdrone/jetson-fan-table
+
+; Sets the update interval (in seconds) at which the program reads
+; from the temperature sensors.
+; To perform less read operations set this to a higher value.
+interval = 2
+
+; Ignores temperatures measured from sensors containing this string
+; in their names. The PMIC sensor is ignored by default.
+; If PMIC is not ignored the average temperature will be higher and the
+; maximum temperature will be 100 C, pushing the fan to it's maximum
+; speed at all times.
+ignore_sensors = PMIC
+
+; Enables the fan tachometer for real time RPM measurements.
+; This does not affect the speed of the fan or how the program operates
+; When enabled, the RPM speed is printed with `fantable --status`.
+# enable_tach = yes
+
+; If set to `no` the temperature is measured using an the highest
+; measured temperature instead of computing the average of all sensors.
+average = no
+
+; Tells the program to call jetson_clocks to set the GPU and CPU clocks
+; to the maximum operating frequency available.
+# max_freq = no

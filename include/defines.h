@@ -37,16 +37,19 @@
 #define TABLE_PATH "/etc/fantable/table"
 #define STORE_FILE "/etc/fantable/state.conf"
 #define INITIAL_STORE_FILE "/etc/fantable/initial_state.conf"
+#define CONFIG_FILE_PATH "/etc/fantable/config"
 
 #define MAX_FREQ_WAIT 30
 
 // set to true to write into filesystem sensitive files
 #define WRITE_SYSTEM_FILES_DANGEROUS true
 
+static const char* argv0 = PACKAGE_NAME;
+
 static bool enable_debug = false;
 static bool enable_max_freq = true;
-static bool clocks_did_set = false;
-static const char* argv0 = PACKAGE_NAME;
-static bool is_first_run = false;
 static bool enable_tach = false;
+
+static bool clocks_did_set = false;
+static bool is_first_run = false;
 static int tach_state = 0;
