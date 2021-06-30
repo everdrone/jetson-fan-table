@@ -16,6 +16,7 @@ fantable_SOURCES = \
     include/log.h \
     include/parse_table.h \
     include/pid.h \
+    include/status.h \
     include/thermal.h \
     include/utils.h \
     vendor/inih/cpp/INIReader.h \

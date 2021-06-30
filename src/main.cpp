@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <getopt.h>
-// #include <libgen.h>
 
 #include <algorithm>
 #include <chrono>
@@ -15,6 +14,7 @@
 #include "log.h"
 #include "parse_table.h"
 #include "pid.h"
+#include "status.h"
 #include "thermal.h"
 #include "utils.h"
 
@@ -45,48 +45,6 @@ void print_help_exit() {
       // clang-format on
       argv0);
   exit(EXIT_SUCCESS);
-}
-
-void print_status(const char* ingore_substr, bool use_highest) {
-  pid_t pid;
-  int retval = ESRCH;
-
-  if ((pid = pid_file_is_running()) >= 0) {
-    printf("process pid: %d\n", pid);
-
-    vector<string> sensor_paths = scan_sensors(ingore_substr);
-    unsigned temperature = 0;
-    unsigned fan_pwm = 0;
-    unsigned cur_rpm = 0;
-
-    temperature = thermal_average(sensor_paths, use_highest);
-    fan_pwm = read_file_int(CUR_PWM_PATH);
-
-    printf("temperature: %d C\n", temperature / 1000);
-    printf("current pwm: %d\n", fan_pwm);
-
-    if (read_file_int(TACH_ENABLE_PATH) == 1) {
-      cur_rpm = read_file_int(MEASURED_RPM_PATH);
-      printf("current rpm: %d\n", cur_rpm);
-    } else {
-      printf("tachometer is disabled\n");
-    }
-
-    retval = EXIT_SUCCESS;
-  } else {
-    sprintf_stderr("%s is not running", argv0);
-  }
-
-  exit(retval);
-}
-
-void check_pid() {
-  pid_t pid;
-  if ((pid = pid_file_is_running()) >= 0) {
-    exit(EXIT_SUCCESS);
-  } else {
-    exit(ESRCH);
-  }
 }
 
 int main(int argc, char* argv[]) {
@@ -256,11 +214,9 @@ int main(int argc, char* argv[]) {
 
   // enbale tachomenter
   if (enable_tach) {
-#if WRITE_SYSTEM_FILES_DANGEROUS
     debug_log("enabling tachometer");
     tach_state = read_file_int(TACH_ENABLE_PATH);
     write_file_int(TACH_ENABLE_PATH, 1);
-#endif
   }
 
   debug_log("using interval of %d seconds", oobj.interval);
@@ -339,11 +295,9 @@ int main(int argc, char* argv[]) {
       // make sure it's between the bounds
       pwm = std::clamp(pwm, unsigned(0), pwm_cap);
 
-#if WRITE_SYSTEM_FILES_DANGEROUS
       debug_log("target_pwm: %d", pwm);
       debug_log("writing pwm to `%s'", TARGET_PWM_PATH);
       write_file_int(TARGET_PWM_PATH, pwm);
-#endif
     }
 
     temperature_old = temperature;

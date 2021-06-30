@@ -13,11 +13,9 @@
  */
 void exit_handler(int status = EXIT_SUCCESS) {
   if (enable_tach) {
-// restore tach
-#if WRITE_SYSTEM_FILES_DANGEROUS
+    // restore tach
     debug_log("restoring previous tachometer state");
     write_file_int(TACH_ENABLE_PATH, tach_state);
-#endif
   }
 
   if (enable_max_freq) {
@@ -30,10 +28,8 @@ void exit_handler(int status = EXIT_SUCCESS) {
   }
 
   // set target pwm to 0
-#if WRITE_SYSTEM_FILES_DANGEROUS
   debug_log("resetting target_pwm to 0");
   write_file_int(TARGET_PWM_PATH, 0);
-#endif
 
   daemon_log(LOG_INFO, "removing pid file");
   if (pid_file_remove() < 0) {

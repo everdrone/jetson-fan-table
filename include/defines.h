@@ -41,9 +41,6 @@
 
 #define MAX_FREQ_WAIT 30
 
-// set to true to write into filesystem sensitive files
-#define WRITE_SYSTEM_FILES_DANGEROUS true
-
 static const char* argv0 = PACKAGE_NAME;
 
 static bool enable_debug = false;
