@@ -52,7 +52,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
-          bodyFile: release_body.md
+          body_path: release_body.md
           draft: false
           prerelease: false
       - name: Upload Release Asset
