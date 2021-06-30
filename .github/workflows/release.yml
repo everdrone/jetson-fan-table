@@ -15,8 +15,7 @@ jobs:
         id: get_version
         uses: battila7/get-version-action@v2
       - name: get changes
-        id: get_changes
-        run: echo "::set-output name=changes::$(dpkg-parsechangelog --show-field Changes | sed -e '1,3d' | cut -c 3- | sed '1s;^;## Changes:\n\n;')"
+        run: dpkg-parsechangelog --show-field Changes | sed -e '1,3d' | cut -c 3- | sed '1s;^;## Changes:\n\n;' > release_body.md && cat release_body.md
       - uses: uraimo/run-on-arch-action@v2.0.5
         name: build aarch64
         id: runcmd
@@ -53,7 +52,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
-          body: ${{ steps.get_changes.outputs.changes }}
+          bodyFile: release_body.md
           draft: false
           prerelease: false
       - name: Upload Release Asset
