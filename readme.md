@@ -11,10 +11,17 @@
 
 ## Build & Install
 
-```sh
-./autogen.sh && cd build
+Clone the submodules after cloning
 
-../configure
+```sh
+git submodule update --init --recursive
+```
+
+Build with autotools
+
+```sh
+# set up autotools
+./autogen.sh && cd build && ../configure
 
 # installation requires privileges
 sudo make install
@@ -45,7 +52,21 @@ current rpm: 1370
 
 The configuration files are located in `/etc/fantable`
 
-The table **must** be formatted correctly for the program to work.
+The `config` file contains daemon options that can be overridden by command line arguments.
+
+```ini
+# /etc/fantable/config
+interval = 3
+average = yes
+```
+
+can be overridden by calling fantable with new arguments
+
+```
+fantable -i 2 -A
+```
+
+The `table` file **must** be formatted correctly for the program to work.
 Each line should be formatted as follows:
 
 ```
@@ -54,7 +75,8 @@ Each line should be formatted as follows:
 
 The default configuration is:
 
-```
+```ini
+# /etc/fantable/table
 27 0
 38 20
 45 50
