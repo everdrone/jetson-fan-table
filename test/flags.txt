@@ -1,1 +1,0 @@
-../configure CXXFLAGS="-Os -D_FORTIFY_SOURCE=2 -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fstack-clash-protection -fstack-protector-all -Wall -Werror=format-security"
